@@ -1,16 +1,13 @@
-MAJOR  ?= 469
-MINOR  ?= 0
-PATCH  ?= 0
-PREFIX ?= /usr
+MAJOR    ?= 469
+MINOR    ?= 0
+PATCH    ?= 0
+CODENAME ?= $(shell lsb_release -cs)
+MD5SUM    = md5sum
+SEDI      = sed -i
 
-machine    = $(shell uname -m)
-servername = $(shell uname -n)
-OS         = $(shell uname -s)
-
-arch = $(machine)
-
-ifeq ($(arch), x86_64)
-	arch := amd64
+ifeq ($(shell uname), Darwin)
+        MD5SUM = md5 -r
+        SEDI   = sed -i ""
 endif
 
 all:	setup
@@ -42,21 +39,23 @@ install:	setup
 dist:	setup
 	./Build dist
 
-rpm:	clean manifest
-	cp spec.header spec
-	perl -i -pe 's/MAJOR/$(MAJOR)/g' spec
-	perl -i -pe 's/MINOR/$(MINOR)/g' spec
-	perl -i -pe 's{PREFIX}{$(PREFIX)}g' spec
-	mkdir -p rpmbuild/BUILD rpmbuild/RPMS rpmbuild/SOURCES rpmbuild/SPECS rpmbuild/SRPMS
-	perl Build.PL
-	./Build dist
-	mv ClearPress*gz rpmbuild/SOURCES/libclearpress-perl-$(MAJOR)-$(MINOR).tar.gz
-	cp rpmbuild/SOURCES/libclearpress-perl-$(MAJOR)-$(MINOR).tar.gz rpmbuild/BUILD/
-	rpmbuild -v --define="_topdir `pwd`/rpmbuild" \
-		    --buildroot `pwd`/rpmbuild/libclearpress-perl-$(MAJOR)-$(MINOR)-root \
-		    --target=$(arch)-redhat-linux        \
-		    -ba spec
-	cp rpmbuild/RPMS/*/libclearpress*.rpm .
+deb:	manifest
+	make test
+	touch tmp
+	rm -rf tmp
+	mkdir -p tmp/usr/lib/perl5
+	cp -pR deb-src/* tmp/
+	cp tmp/DEBIAN/control.tt2 tmp/DEBIAN/control
+	$(SEDI) "s/MAJOR/$(MAJOR)/g" tmp/DEBIAN/control
+	$(SEDI) "s/MINOR/$(MINOR)/g" tmp/DEBIAN/control
+	$(SEDI) "s/PATCH/$(PATCH)/g" tmp/DEBIAN/control
+	$(SEDI) "s/RELEASE/$(RELEASE)/g" tmp/DEBIAN/control
+	$(SEDI) "s/CODENAME/$(CODENAME)/g" tmp/DEBIAN/control
+	rsync --exclude .svn --exclude .git -va lib/* tmp/usr/lib/perl5/
+	rsync --exclude .svn --exclude .git -va bin/* tmp/usr/bin/
+	find tmp -type f ! -regex '.*\(\bDEBIAN\b\|\.\bsvn\b\|\bdeb-src\b\|\.\bgit\b\|\.\bsass-cache\b\|\.\bnetbeans\b\).*'  -exec $(MD5SUM) {} \; | sed 's/tmp\///' > tmp/DEBIAN/md5sums
+	(cd tmp; fakeroot dpkg -b . ../libclearpress-perl-$(MAJOR).$(MINOR)-$(PATCH)~$(CODENAME).deb)
 
-deb:	rpm
-	fakeroot alien  -d libclearpress-perl-$(MAJOR)-$(MINOR).$(arch).rpm
+cpan:	clean
+	make dist
+	cpan-upload ClearPress-v$(MAJOR).$(MINOR).$(PATCH).tar.gz
