@@ -4,6 +4,8 @@ cgi-bin/application
 cgi-bin/login
 cgi-bin/logout
 Changes
+deb-src/DEBIAN/changelog
+deb-src/DEBIAN/control.tt2
 examples/GrandKids/bin/GrandKids
 examples/GrandKids/cgi-bin/GrandKids
 examples/GrandKids/config.layout
@@ -52,7 +54,6 @@ LICENSE
 Makefile
 MANIFEST			This list of files
 README
-spec.header
 t/00-critic.t
 t/00-distribution.t
 t/00-pod.t
@@ -123,5 +124,3 @@ t/user/basic.pm
 t/util.pm
 t/view/derived.pm
 t/view/error.pm
-META.yml
-META.json
