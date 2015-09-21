@@ -17,3 +17,4 @@ nytprof.out
 *.o
 *.bs
 /_eumm/
+test.db
