@@ -1,0 +1,34 @@
+Summary: ClearPress Web Framework
+Name: libclearpress-perl
+Version: CLEARPRESSMAJOR
+Release: CLEARPRESSMINOR
+License: GPL
+Group: Applications
+Source: libclearpress-perl-CLEARPRESSMAJOR-CLEARPRESSMINOR.tar.gz
+URL: http://clearpress.net/
+Distribution: psyphi.net
+Vendor: psyphi.net
+Packager: Roger Pettett <rmp@psyphi.net>
+AutoReqProv: no
+
+%description
+Simple, lightweight web framework for Perl.
+
+%prep
+
+%build
+tar -xzf *.tar.gz
+cd ClearPress*
+perl Build.PL --prefix=$RPM_BUILD_ROOTPREFIX
+./Build
+
+%install
+cd ClearPress*
+./Build install
+find $RPM_BUILD_ROOT -name \*1 -exec gzip {} \;
+find $RPM_BUILD_ROOT -name \*1p -exec gzip {} \;
+find $RPM_BUILD_ROOT -name \*3pm -exec gzip {} \;
+find $RPM_BUILD_ROOT -type f | sed "s|$RPM_BUILD_ROOT||g" > ../rpmbuild.manifest
+
+%files -f rpmbuild.manifest
+%defattr(-,root,root)
