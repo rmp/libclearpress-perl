@@ -20,6 +20,10 @@ __PACKAGE__->mk_accessors(qw(errstr));
 
 our $VERSION = q[469.0.0];
 
+sub safe_errors {
+  return 1;
+}
+
 sub render {
   my $self   = shift;
   my $aspect = $self->aspect();
@@ -29,12 +33,12 @@ sub render {
     $errstr .= q(Template Error: ) . Template->error();
   }
 
-#  if($EVAL_ERROR) {
-#    $errstr .= q(Eval Error: ) . $EVAL_ERROR;
-#  }
-  print {*STDERR} "Serving error: $errstr\n" or croak $ERRNO;
-  $errstr =~ s/[ ]at[ ]\S+[ ]line[ ][[:digit:]]+//smxg;
-  $errstr =~ s/\s+$//smx;
+  if($self->safe_errors) {
+    print {*STDERR} "Serving error: $errstr\n" or croak $ERRNO;
+    $errstr =~ s/[ ]at[ ]\S+[ ]line[ ][[:digit:]]+//smxg;
+    $errstr =~ s/\s+$//smx;
+    $errstr =~ s/Error:\s+Error/Error:/smix;
+  }
 
   #########
   # initialise tt_filters by resetting tt
@@ -83,6 +87,8 @@ $LastChangedRevision: 470 $
 =head2 render - encapsulated HTML rather than a template, in case the template has caused the error
 
   my $sErrorOutput = $oErrorView->render();
+
+=head2 safe_errors - boolean flag, default on - strip strings which look like filenames and line numbers
 
 =head1 DIAGNOSTICS
 
