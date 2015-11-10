@@ -22,8 +22,9 @@ use POSIX qw(strftime);
 use HTML::Entities qw(encode_entities_numeric);
 use XML::Simple qw(XMLin);
 use utf8;
+use ClearPress::Localize;
 
-our $VERSION = q[469.0.0];
+our $VERSION = q[471.0.0];
 our $DEBUG_OUTPUT   = 0;
 our $TEMPLATE_CACHE = {};
 
@@ -35,7 +36,7 @@ sub new {
   bless $self, $class;
 
   my $util                    = $self->util;
-  my $username                = $util?$util->username:q[];
+  my $username                = $util ? $util->username : q[];
   $self->{requestor_username} = $username;
   $self->{logged_in}          = $username?1:0;
   $self->{warnings}           = [];
@@ -55,6 +56,8 @@ sub new {
   $self->setup_filters;
 
   $self->init;
+
+  ClearPress::Localize->init($self->locales);
 
   $self->{content_type} ||= 'text/html';
 
@@ -76,6 +79,7 @@ sub setup_filters {
 #                         $string    =~ s/'/\\'/smxg;
                          return $string;
                        });
+
   $self->add_tt_filter('xml_entity', sub {
                          my $string = shift;
                          if(!defined $string) {
@@ -83,11 +87,40 @@ sub setup_filters {
                          }
                          return encode_entities_numeric($string),
                        });
+
+  my $util = $self->util;
+
+  $self->add_tt_filter('loc', [sub {
+
+                                 return sub {
+                                   my ($string) = shift;
+
+                                   #########
+                                   # Cache lexicons for speed
+                                   #
+                                   my $lang = ClearPress::Localize->lang;
+                                   if($lang && !$util->{localizers}->{$lang}) {
+                                     $util->{localizers}->{$lang} = ClearPress::Localize->localizer;
+                                   }
+
+                                   return $util->{localizers}->{$lang}->maketext($string);
+                                 };
+                               }, 1]);
+
   return 1;
 }
 
 sub init {
   return 1;
+}
+
+sub locales {
+  my $self = shift;
+  my $util = $self->util;
+  return {
+          $util ? (q[*]  => [Gettext => sprintf q[%s/po/*.po], $util->data_path] ) : (),
+          q[en] => ['Auto'],
+         };
 }
 
 sub add_warning {
@@ -759,6 +792,15 @@ View superclass for the ClearPress framework
 =head2 init - additional post-constructor hook
 
 =head2 setup_filters - adds default tt_filters, called by ->new()
+
+=head2 locales - hashref of locale lexicons to feed Locale::Maketext::Lexicon
+
+ Defaults are:
+
+ {
+   '*' => [Gettext => sprintf q[%s/po/*.po], $util->data_path],
+   'en' => ['Auto'],
+ }
 
 =head2 determine_aspect - URI processing
 
