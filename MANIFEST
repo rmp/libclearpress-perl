@@ -4,6 +4,7 @@ cgi-bin/application
 cgi-bin/login
 cgi-bin/logout
 Changes
+ClearPress-v471.0.0.tar.gz
 deb-src/DEBIAN/changelog
 deb-src/DEBIAN/control.tt2
 examples/GrandKids/bin/GrandKids
@@ -46,6 +47,7 @@ lib/ClearPress/driver.pm
 lib/ClearPress/driver/mysql.pm
 lib/ClearPress/driver/Pg.pm
 lib/ClearPress/driver/SQLite.pm
+lib/ClearPress/Localize.pm
 lib/ClearPress/model.pm
 lib/ClearPress/util.pm
 lib/ClearPress/view.pm
