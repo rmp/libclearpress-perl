@@ -27,6 +27,7 @@ use ClearPress::Localize;
 our $VERSION = q[471.0.0];
 our $DEBUG_OUTPUT   = 0;
 our $TEMPLATE_CACHE = {};
+our $LEXICON_CACHE  = {};
 
 __PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator));
 
@@ -96,14 +97,23 @@ sub setup_filters {
                                    my ($string) = shift;
 
                                    #########
-                                   # Cache lexicons for speed
+                                   # Cache lexicons for
+                                   # speed. However, loading on-demand
+                                   # won't generally use shared memory
                                    #
                                    my $lang = ClearPress::Localize->lang;
-                                   if($lang && !$util->{localizers}->{$lang}) {
-                                     $util->{localizers}->{$lang} = ClearPress::Localize->localizer;
+                                   if($lang && !$LEXICON_CACHE->{$lang}) {
+                                     $LEXICON_CACHE->{$lang} = ClearPress::Localize->localizer;
                                    }
 
-                                   return $util->{localizers}->{$lang}->maketext($string);
+                                   my $loc = $string;
+                                   eval {
+                                     $loc = $util->{localizers}->{$lang}->maketext($string);
+                                   } or do {
+                                     carp qq[Could not localize $string to $lang];
+                                   };
+
+                                   return $loc || $string;
                                  };
                                }, 1]);
 
