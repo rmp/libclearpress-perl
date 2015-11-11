@@ -35,9 +35,9 @@ sub lang {
   bless $req, 'ClearPress::request';
   my $lang = $lang_detect->language($req);
 
-  if($lang) {
-    carp qq[Detected $lang from $ENV{HTTP_ACCEPT_LANGUAGE}];
-  }
+#  if($lang) {
+#    carp qq[Detected $lang from $ENV{HTTP_ACCEPT_LANGUAGE}];
+#  }
   return $lang;
 }
 
