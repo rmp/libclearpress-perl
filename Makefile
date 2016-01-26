@@ -1,4 +1,4 @@
-MAJOR    ?= 471
+MAJOR    ?= 472
 MINOR    ?= 0
 PATCH    ?= 3
 CODENAME ?= $(shell lsb_release -cs)

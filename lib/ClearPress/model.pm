@@ -17,13 +17,21 @@ use ClearPress::util;
 use English qw(-no_match_vars);
 use Carp;
 use Lingua::EN::Inflect qw(PL);
+use Lingua::EN::PluralToSingular qw(to_singular);
 use POSIX qw(strftime);
 use Readonly;
 
-our $VERSION = q[469.0.0];
+our $VERSION = q[469.0.1];
 Readonly::Scalar our $DBI_CACHE_OVERWRITE => 3;
 
+our $EXPERIMENTAL_PL = 0;
+
 sub fields { return (); }
+
+sub _plfunc {
+  my $thing = shift;
+  return $EXPERIMENTAL_PL ? PL(to_singular($thing)) : PL($thing);
+}
 
 sub primary_key {
   my $self = shift;
@@ -195,7 +203,7 @@ sub gen_getall {
 
   if(!$cachekey) {
     ($cachekey) = $class =~ /([^:]+)$/smx;
-    $cachekey   = PL($cachekey);
+    $cachekey   = _plfunc($cachekey);
   }
 
   if(!$self->{$cachekey}) {
@@ -221,7 +229,7 @@ sub gen_getfriends {
 
   if(!$cachekey) {
     ($cachekey) = $class =~ /([^:]+)$/smx;
-    $cachekey   = PL($cachekey);
+    $cachekey   = _plfunc($cachekey);
   }
 
   if(!$self->{$cachekey}) {
@@ -245,7 +253,7 @@ sub gen_getfriends_through {
 
   if(!$cachekey) {
     ($cachekey) = $class =~ /([^:]+)$/smx;
-    $cachekey   = PL($cachekey);
+    $cachekey   = _plfunc($cachekey);
   }
 
   if(!$self->{$cachekey}) {
@@ -377,7 +385,7 @@ sub has_many {
       ($single) = keys %{$single};
     }
 
-    my $plural    = PL($single);
+    my $plural    = _plfunc($single);
     my $namespace = "${class}::$plural";
     my $yield     = $class;
     $yield        =~ s/^(.*model::).*$/$1$pkg/smx;
@@ -473,7 +481,7 @@ sub has_many_through {
       croak qq(Cannot build has_many_through for $single);
     }
 
-    my $plural    = PL($single);
+    my $plural    = _plfunc($single);
     my $namespace = "${class}::$plural";
     my $yield     = $class;
     $yield        =~ s/^(.*model::).*$/$1$pkg/smx;
@@ -501,7 +509,7 @@ sub has_all {
   my ($class) = @_;
 
   my ($single)  = $class =~ /([^:]+)$/smx;
-  my $plural    = PL($single);
+  my $plural    = _plfunc($single);
   my $namespace = "${class}::$plural";
 
   if (defined &{$namespace}) {
@@ -942,6 +950,13 @@ field-name in this object.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
+ Pluralisation behaviour:
+  Default is Lingua::EN::Inflect PL(X)
+
+ Set $ClearPress::model::EXPERIMENTAL_PL = 1 to use:
+
+   PL(to_singular(X)); provided by Lingua::EN::Inflect and Lingua::EN::PluralToSingular
+
 =head1 DEPENDENCIES
 
 =over
@@ -961,6 +976,8 @@ field-name in this object.
 =item Carp
 
 =item Lingua::EN::Inflect
+
+=item Lingua::EN::PluralToSingular
 
 =item POSIX
 
