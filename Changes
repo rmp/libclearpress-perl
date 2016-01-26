@@ -1,3 +1,7 @@
+libclearpress-perl (471.0.3) stable; urgency=low
+
+  * Set $ClearPress::model::EXPERIMENTAL_PL to use (apparently) more robust pluralisation for has_many etc.
+
 libclearpress-perl (466) stable; urgency=low
 
   * adjusted compound request/extension handling (e.g. .txt + .ajax to drop the _ajax component if present)
