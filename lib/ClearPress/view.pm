@@ -24,7 +24,7 @@ use XML::Simple qw(XMLin);
 use utf8;
 use ClearPress::Localize;
 
-our $VERSION = q[471.0.0];
+our $VERSION = q[472.0.3];
 our $DEBUG_OUTPUT   = 0;
 our $TEMPLATE_CACHE = {};
 our $LEXICON_CACHE  = {};
