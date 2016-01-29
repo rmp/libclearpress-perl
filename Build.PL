@@ -21,6 +21,7 @@ my $builder = Module::Build->new(
 							 'Template'             => '2.19',
 							 'Template::Filters'    => '2.86',
 							 'Lingua::EN::Inflect'  => '1.89',
+							 'Lingua::EN::PluralToSingular' => '0.17',
                                                          'Locale::Maketext'     => '1.19',
                                                          'Locale::Maketext::Lexicon' => '0.91',
                                                          'IO::Capture'          => '0.05',

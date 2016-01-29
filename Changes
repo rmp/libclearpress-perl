@@ -1,3 +1,7 @@
+libclearpress-perl (471.0.4) stable; urgency=low
+
+  * Forgot to add Lingua::EN::PluralToSingular prerequisite to Build.PL
+
 libclearpress-perl (471.0.3) stable; urgency=low
 
   * Set $ClearPress::model::EXPERIMENTAL_PL to use (apparently) more robust pluralisation for has_many etc.
