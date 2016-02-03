@@ -20,7 +20,7 @@ use English qw(-no_match_vars);
 use ClearPress::driver;
 use CGI;
 
-our $VERSION = q[472.0.3];
+our $VERSION = q[472.0.4];
 our $DEFAULT_TRANSACTIONS = 1;
 our $DEFAULT_DRIVER       = 'mysql';
 my  $INSTANCES = {};
