@@ -1,6 +1,6 @@
 MAJOR    ?= 472
 MINOR    ?= 0
-PATCH    ?= 3
+PATCH    ?= 4
 CODENAME ?= $(shell lsb_release -cs)
 MD5SUM    = md5sum
 SEDI      = sed -i
