@@ -48,7 +48,7 @@ sub new {
   local $ENV{REQUEST_URI}           = "/request$ref->{PATH_INFO}";
 
   my $stdin = q[];
-  local *{IO::Scalar::BINMODE} = sub {};
+  local *IO::Scalar::BINMODE = sub {};
   tie *STDIN, 'IO::Scalar', \$stdin;
 
 #  $util->catch_email($ref);

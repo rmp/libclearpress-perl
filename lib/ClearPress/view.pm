@@ -687,6 +687,31 @@ sub actions {
   return $content;
 }
 
+sub redirect {
+  my ($self, $internal_uri, $status) = @_;
+
+  #########
+  # compile special pieces of mod-perl if not already compiled
+  #
+  for my $pkg (qw(Apache2::RequestRec Apache2::SubRequest)) {
+    my $ns = "$pkg::";
+    no strict 'refs'; ## no critic (ProhibitNoStrict)
+    if(!scalar %{$ns}) {
+      require $pkg;
+      $pkg->import();
+    }
+  }
+
+  my $cgi = $self->util->cgi;
+  my $r   = $cgi->r;
+
+  if($status) {
+    $r->status($status);
+  }
+
+  return $r->internal_redirect($internal_uri);
+}
+
 # todo: auto-create these <action>_<format> style accessors
 
 sub list_xml {
@@ -957,6 +982,12 @@ e.g.
 =head2 actions - templated output for available actions
 
   my $sActionOutput = $oView->actions;
+
+=head2 redirect - Apache internal redirect via mod-perl subrequest
+
+  $oView->redirect($sURL);
+
+  $oView->redirect($sURL, $sStatus); # optional status
 
 =head2 list_xml - default passthrough to list for xml service
 
