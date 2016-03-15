@@ -54,6 +54,8 @@ sub accept_extensions {
 	  {'.html' => q[]},
 	  {'.xml'  => q[_xml]},
 	  {'.png'  => q[_png]},
+	  {'.svg'  => q[_svg]},
+	  {'.svgz' => q[_svgz]},
 	  {'.jpg'  => q[_jpg]},
 	  {'.rss'  => q[_rss]},
 	  {'.atom' => q[_atom]},

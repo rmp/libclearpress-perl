@@ -48,7 +48,9 @@ sub new {
   my $aspect = $self->aspect || q[];
 
   $self->{content_type} ||= ($aspect =~ /(?:rss|atom|ajax|xml)$/smx)?'text/xml':q[];
-  $self->{content_type} ||= ($aspect =~ /(?:js|json)$/smx)?'application/javascript':q[];
+  $self->{content_type} ||= ($aspect =~ /(?:js|json)$/smx)?'application/json':q[];
+  $self->{content_type} ||= ($aspect =~ /_svg$/smx)?'image/svg+xml':q[];
+  $self->{content_type} ||= ($aspect =~ /_svgz$/smx)?'image/svg+xml':q[];
   $self->{content_type} ||= ($aspect =~ /_png$/smx)?'image/png':q[];
   $self->{content_type} ||= ($aspect =~ /_jpg$/smx)?'image/jpeg':q[];
   $self->{content_type} ||= ($aspect =~ /_txt$/smx)?'text/plain':q[];
@@ -284,7 +286,7 @@ sub render {
   }
 
   if($self->can($method)) {
-    if($aspect =~ /_(?:jpg|png|gif)/smx) {
+    if($aspect =~ /_(?:jpg|png|gif|svg|svgz)/smx) {
       return $self->$method();
     }
 
@@ -623,7 +625,7 @@ sub decor {
   my $self = shift;
   my $aspect = $self->aspect || q[];
 
-  if($aspect =~ /(?:rss|atom|ajax|xml|json|js|_png|_jpg|_txt)$/smx) {
+  if($aspect =~ /(?:rss|atom|ajax|xml|json|js|_png|_jpg|_svg|_svgz|_txt)$/smx) {
     return 0;
   }
   return 1;
