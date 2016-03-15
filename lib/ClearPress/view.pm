@@ -23,6 +23,7 @@ use HTML::Entities qw(encode_entities_numeric);
 use XML::Simple qw(XMLin);
 use utf8;
 use ClearPress::Localize;
+use MIME::Base64 qw(encode_base64);
 
 our $VERSION = q[472.0.4];
 our $DEBUG_OUTPUT   = 0;
@@ -89,6 +90,14 @@ sub setup_filters {
                            $string = q[];
                          }
                          return encode_entities_numeric($string),
+                       });
+
+  $self->add_tt_filter('base64', sub {
+                         my $string = shift;
+                         if(!defined $string) {
+                           $string = q[];
+                         }
+                         return encode_base64($string),
                        });
 
   my $util = $self->util;

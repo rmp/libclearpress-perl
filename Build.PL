@@ -24,6 +24,7 @@ my $builder = Module::Build->new(
 							 'Lingua::EN::PluralToSingular' => '0.17',
                                                          'Locale::Maketext'     => '1.19',
                                                          'Locale::Maketext::Lexicon' => '0.91',
+                                                         'MIME::Base64'         => '3.15',
                                                          'IO::Capture'          => '0.05',
 							 'IO::Scalar'           => '2.110',
 							 'POSIX'                => '1.09',
