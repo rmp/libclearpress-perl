@@ -25,7 +25,7 @@ use utf8;
 use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
 
-our $VERSION = q[473.0.1];
+our $VERSION = q[473.0.2];
 our $DEBUG_OUTPUT   = 0;
 our $TEMPLATE_CACHE = {};
 our $LEXICON_CACHE  = {};

@@ -30,7 +30,7 @@ use CGI;
 #use Apache2::RequestUtil;
 #use Apache2::Const -compile => qw(:http);
 
-our $VERSION = q[473.0.1];
+our $VERSION = q[473.0.2];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',

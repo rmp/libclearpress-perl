@@ -18,7 +18,7 @@ use Lingua::EN::Inflect qw(PL);
 use lib qw(blib/lib lib);
 use ClearPress;
 
-our $VERSION = q[473.0.1];
+our $VERSION = q[473.0.2];
 our $ASPECTS = [qw(read list add create edit update)];
 
 local $ENV{PATH} = join q(:), qw(/bin /usr/bin /usr/local/bin /opt/local/bin);
