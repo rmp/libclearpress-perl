@@ -32,7 +32,7 @@ our $LEXICON_CACHE  = {};
 
 __PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator));
 
-sub new {
+sub new { ## no critic (Complexity)
   my ($class, $self)    = @_;
   $self               ||= {};
   bless $self, $class;
