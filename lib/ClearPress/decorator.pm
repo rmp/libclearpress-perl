@@ -16,7 +16,7 @@ use CGI qw(param);
 use base qw(Class::Accessor);
 use Readonly;
 
-our $VERSION = q[472.0.4];
+our $VERSION = q[473.0.1];
 our $DEFAULTS = {
 		 'meta_content_type' => 'text/html',
 		 'meta_version'      => '0.1',
