@@ -3,6 +3,7 @@ libclearpress-perl (473.0.1) stable; urgency=low
   * Added base64 filter: [% string | base64 %] - useful for inline image data
   * Quietened down DBI DESTROY/disconnect warnings
   * Added basic SVG response and content-type support
+  * JSON response content-type changed from application/javascript to application/json
 
 libclearpress-perl (472.0.4) stable; urgency=low
 
