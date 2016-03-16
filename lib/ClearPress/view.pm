@@ -715,12 +715,15 @@ sub redirect {
 
   my $cgi = $self->util->cgi;
   my $r   = $cgi->r;
+  if($r) {
+    $r->status($status || '301');
 
-  if($status) {
-    $r->status($status);
+    return $r->redirect($internal_uri);
   }
 
-  return $r->internal_redirect($internal_uri);
+  carp q[Redirect support unavailable. Please request it via CPAN RT.];
+
+  return;
 }
 
 # todo: auto-create these <action>_<format> style accessors

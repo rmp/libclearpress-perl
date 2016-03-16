@@ -19,6 +19,7 @@ use POSIX qw(strftime);
 use English qw(-no_match_vars);
 use ClearPress::driver;
 use CGI;
+use IO::Capture::Stderr;
 
 our $VERSION = q[472.0.4];
 our $DEFAULT_TRANSACTIONS = 1;
@@ -212,8 +213,18 @@ sub dbport {
 }
 
 END {
-    # dereferences and causes orderly destruction of all instances
-    undef $INSTANCES;
+  # dereferences and causes orderly destruction of all instances
+  my $cap = IO::Capture::Stderr->new();
+  $cap->start;
+  undef $INSTANCES;
+  $cap->stop;
+  while(my $line = $cap->read()) {
+    if($line =~ /MySQL[ ]server[ ]has[ ]gone[ ]away/smix) { # brute force do not display these copious, noisy warnings
+      next;
+    }
+
+    print {*STDERR} $line or croak qq[Error printing: $ERRNO];
+  }
 }
 
 1;
