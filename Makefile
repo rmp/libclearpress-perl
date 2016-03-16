@@ -14,7 +14,7 @@ all:	setup
 	./Build
 
 versions:
-	find lib bin -type f -exec perl -i -pe 's/VERSION\s+=\s+q[[\d.]+]/VERSION = q[$(MAJOR).$(MINOR).$(PATCH)]/g' {} \;
+	find lib bin t -type f -exec perl -i -pe 's/VERSION\s+=\s+q[[\d.]+]/VERSION = q[$(MAJOR).$(MINOR).$(PATCH)]/g' {} \;
 
 setup:
 	perl Build.PL
