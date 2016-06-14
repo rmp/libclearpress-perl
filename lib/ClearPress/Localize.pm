@@ -18,7 +18,7 @@ use Locale::Maketext::Lexicon {
   };
 use Carp;
 
-our $VERSION = q[473.0.2];
+our $VERSION = q[473.0.3];
 
 sub init {
   my ($class, $locales) = @_;
