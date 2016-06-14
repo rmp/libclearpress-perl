@@ -27,6 +27,7 @@ use MIME::Base64 qw(encode_base64);
 
 our $VERSION = q[473.0.2];
 our $DEBUG_OUTPUT   = 0;
+our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
 our $LEXICON_CACHE  = {};
 
@@ -120,8 +121,10 @@ sub setup_filters {
                                    my $loc = $string;
                                    eval {
                                      $loc = $util->{localizers}->{$lang}->maketext($string);
+                                     1;
                                    } or do {
-                                     carp qq[Could not localize $string to $lang];
+                                     $DEBUG_L10N && carp qq[Could not localize $string to $lang];
+                                     1;
                                    };
 
                                    return $loc || $string;
@@ -1092,6 +1095,10 @@ e.g.
 =head1 DIAGNOSTICS
 
 =head1 CONFIGURATION AND ENVIRONMENT
+
+ Set $ClearPress::view::DEBUG_L10N = 1 to report missing locali[zs]ation strings.
+
+ Set $ClearPress::view::DEBUG_OUTPUT = 1 to report output buffer operations.
 
 =head1 DEPENDENCIES
 
