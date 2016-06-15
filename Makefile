@@ -59,3 +59,7 @@ deb:	manifest
 cpan:	clean
 	make dist
 	cpan-upload ClearPress-v$(MAJOR).$(MINOR).$(SUB)-$(PATCH).tar.gz
+
+debdeps:
+	grep Depends deb-src/DEBIAN/control.tt2  | cut -d : -f 2 | sed 's/,/ /g' | xargs sudo apt-get install
+	grep Recommends deb-src/DEBIAN/control.tt2  | cut -d : -f 2 | sed 's/,/ /g' | xargs sudo apt-get install
