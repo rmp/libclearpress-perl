@@ -18,7 +18,7 @@ use Carp;
 
 __PACKAGE__->mk_accessors(qw(errstr));
 
-our $VERSION = q[473.0.3];
+our $VERSION = q[473.0.4];
 
 sub safe_errors {
   return 1;

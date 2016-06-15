@@ -1,6 +1,7 @@
 MAJOR    ?= 473
 MINOR    ?= 0
-PATCH    ?= 3
+SUB      ?= 4
+PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i
 
@@ -13,7 +14,7 @@ all:	setup
 	./Build
 
 versions:
-	find lib bin t -type f -exec perl -i -pe 's/VERSION\s+=\s+q[[\d.]+]/VERSION = q[$(MAJOR).$(MINOR).$(PATCH)]/g' {} \;
+	find lib bin t -type f -exec perl -i -pe 's/VERSION\s+=\s+q[[\d.]+]/VERSION = q[$(MAJOR).$(MINOR).$(SUB)]/g' {} \;
 
 setup:
 	perl Build.PL
@@ -47,13 +48,14 @@ deb:	manifest
 	cp tmp/DEBIAN/control.tt2 tmp/DEBIAN/control
 	$(SEDI) "s/MAJOR/$(MAJOR)/g" tmp/DEBIAN/control
 	$(SEDI) "s/MINOR/$(MINOR)/g" tmp/DEBIAN/control
+	$(SEDI) "s/SUB/$(SUB)/g"     tmp/DEBIAN/control
 	$(SEDI) "s/PATCH/$(PATCH)/g" tmp/DEBIAN/control
 	$(SEDI) "s/RELEASE/$(RELEASE)/g" tmp/DEBIAN/control
 	rsync --exclude .svn --exclude .git -va lib/* tmp/usr/lib/perl5/
 	rsync --exclude .svn --exclude .git -va bin/* tmp/usr/bin/
 	find tmp -type f ! -regex '.*\(\bDEBIAN\b\|\.\bsvn\b\|\bdeb-src\b\|\.\bgit\b\|\.\bsass-cache\b\|\.\bnetbeans\b\).*'  -exec $(MD5SUM) {} \; | sed 's/tmp\///' > tmp/DEBIAN/md5sums
-	(cd tmp; fakeroot dpkg -b . ../libclearpress-perl-$(MAJOR).$(MINOR)-$(PATCH).deb)
+	(cd tmp; fakeroot dpkg -b . ../libclearpress-perl-$(MAJOR).$(MINOR).$(SUB)-$(PATCH).deb)
 
 cpan:	clean
 	make dist
-	cpan-upload ClearPress-v$(MAJOR).$(MINOR).$(PATCH).tar.gz
+	cpan-upload ClearPress-v$(MAJOR).$(MINOR).$(SUB)-$(PATCH).tar.gz
