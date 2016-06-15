@@ -1,5 +1,5 @@
 Package: libclearpress-perl
-Version: MAJOR.MINOR-PATCH
+Version: MAJOR.MINOR.SUB-PATCH
 Section: base
 Priority: optional
 Architecture: all
