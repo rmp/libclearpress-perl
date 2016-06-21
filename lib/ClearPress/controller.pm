@@ -50,6 +50,9 @@ our $REST   = {
 	       list   => 'GET',
                null   => 'HEAD|TRACE'
 	      };
+
+our $EXPERIMENTAL_HEADERS = 0;
+
 sub accept_extensions {
   return [
 	  {'.html' => q[]},
@@ -113,6 +116,17 @@ sub util {
     $self->{util} = $util;
   }
   return $self->{util};
+}
+
+sub response_code {
+  my ($self, $status) = @_;
+
+  if($status) {
+    carp qq[controller set response $status];
+    $self->{response_code} = $status;
+  }
+
+  return $self->{response_code};
 }
 
 sub packagespace {
@@ -422,6 +436,19 @@ sub session {
   return $decorator->session() || {};
 }
 
+sub set_http_status {
+  my $self = shift;
+
+  if($EXPERIMENTAL_HEADERS) {
+    my $util = $self->util;
+    my $cgi  = $util->cgi;
+    carp qq[Serving response code @{[$self->response_code]}];
+    $cgi->header(-status => $self->response_code);
+  }
+
+  return 1;
+}
+
 sub handler {
   my ($self, $util) = @_;
   if(!ref $self) {
@@ -437,6 +464,10 @@ sub handler {
   $util->username($decorator->username());
   $util->session($self->session($util));
 
+  if(!$self->response_code) {
+    $self->response_code(HTTP_OK);
+  }
+
   my $viewobject = $self->dispatch({
 				    util   => $util,
 				    entity => $entity,
@@ -444,10 +475,7 @@ sub handler {
 				    action => $action,
 				    id     => $id,
 				   });
-
   my $decor = $viewobject->decor();
-
-  my $response_code = HTTP_OK;
 
   #########
   # let the view have the decorator in case it wants to modify headers
@@ -471,16 +499,19 @@ sub handler {
   eval {
     $viewobject->output_buffer($viewobject->render());
 
-  } or do {
-    #########
-    # store response if present
-    #
     if($viewobject->response_code) {
-      $response_code = $viewobject->response_code;
-      carp qq[Serving error response $response_code];
+      $self->response_code($viewobject->response_code);
     }
 
-    $cgi->header(-status => $response_code);
+    $self->set_http_status();
+
+  } or do {
+    if($viewobject->response_code) {
+      carp q[set error view response code];
+      $self->response_code($viewobject->response_code);
+    }
+
+    $self->set_http_status();
 
     $viewobject = $self->build_error_object("${namespace}::view::error",
 					    $action,
@@ -496,6 +527,7 @@ sub handler {
       $viewobject->output_buffer($decorator->header());
     }
     $viewobject->output_buffer($viewobject->render());
+
   };
 
   #########
@@ -580,12 +612,11 @@ sub dispatch {
   my $action    = $ref->{action};
   my $id        = $ref->{id};
   my $viewobject;
-  my $status;
 
   eval {
     my $state = $self->is_valid_view($ref, $entity);
     if(!$state) {
-      $status = HTTP_NOT_FOUND;
+      $self->response_code(HTTP_NOT_FOUND);
 
       croak qq(No such view ($entity). Is it in your config.ini?);
     }
@@ -600,7 +631,7 @@ sub dispatch {
 					$modelpk?($modelpk => $id):(),
 				       });
     if(!$modelobject) {
-      $status = HTTP_INTERNAL_SERVER_ERROR;
+      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
       croak qq(Failed to instantiate $modelobject);
     }
 
@@ -612,16 +643,13 @@ sub dispatch {
 				   entity_name => $entity_name,
 				  });
     if(!$viewobject) {
-      $status = HTTP_INTERNAL_SERVER_ERROR;
+      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
       croak qq(Failed to instantiate $viewobject);
     }
 
     1;
 
   } or do {
-    if($status) {
-      $util->cgi->header(-status => $status); # can't do this via $view->response_code()
-    }
     my $namespace = $self->namespace($util);
     $viewobject   = $self->build_error_object("${namespace}::view::error", $action, $aspect, $EVAL_ERROR);
   };
@@ -726,9 +754,19 @@ $Revision: 470 $
 
 =head2 build_error_object - builds an error view object
 
+=head2 response_code - wrap view->response_code and extend with more error statuses
+
+=head2 set_http_status - configure outbound response status header via CGI.pm
+
+ $oController->set_http_status();
+
+ Based on view->response_code || controller->response_code
+
 =head1 DIAGNOSTICS
 
 =head1 CONFIGURATION AND ENVIRONMENT
+
+Set $ClearPress::controller::EXPERIMENTAL_HEADERS = 1 to enable basic CGI response headers for various error states
 
 =head1 DEPENDENCIES
 

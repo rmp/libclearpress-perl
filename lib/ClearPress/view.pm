@@ -170,10 +170,9 @@ sub _accessor { ## no critic (ProhibitUnusedPrivateSubroutines)
 
 sub response_code {
   my ($self, $status) = @_;
-  my $util = $self->util;
-  my $cgi  = $util->cgi;
 
   if($status) {
+    carp qq[view set response $status];
     $self->{response_code} = $status;
   }
 
