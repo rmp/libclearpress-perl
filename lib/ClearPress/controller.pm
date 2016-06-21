@@ -574,6 +574,9 @@ sub handler {
     }
   }
 
+  #########
+  # flush everything to client socket (via stdout)
+  #
   $viewobject->output_end();
 
   #########
