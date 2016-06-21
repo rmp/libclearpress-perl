@@ -172,7 +172,6 @@ sub response_code {
   my ($self, $status) = @_;
 
   if($status) {
-    carp qq[view set response $status];
     $self->{response_code} = $status;
   }
 

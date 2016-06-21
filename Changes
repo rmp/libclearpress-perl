@@ -1,3 +1,7 @@
+libclearpress-perl (474.0.1) stable; urgency=low
+
+  * Set $ClearPress::controller::EXPERIMENTAL_HEADERS = 1 to enable Apache2::RequestRec-based status response headers
+
 libclearpress-perl (473.0.3) stable; urgency=low
 
   * localization warnings disabled by default. Use $ClearPress::view::DEBUG_L10N = 1 to enable warnings about missing localization strings

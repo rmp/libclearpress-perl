@@ -122,7 +122,6 @@ sub response_code {
   my ($self, $status) = @_;
 
   if($status) {
-    carp qq[controller set response $status];
     $self->{response_code} = $status;
   }
 
@@ -440,10 +439,27 @@ sub set_http_status {
   my $self = shift;
 
   if($EXPERIMENTAL_HEADERS) {
+    #########
+    # todo: better-understand the interaction with PerlSendHeaders on
+    #
+    if(!$ENV{MOD_PERL}) {
+      carp q[Warning: status header responses require mod-perl];
+      return;
+    }
+
     my $util = $self->util;
     my $cgi  = $util->cgi;
+    my $r    = $cgi->r;
+
+    if(!$r) {
+      carp q[Warning: no request object available];
+      return;
+    }
+
     carp qq[Serving response code @{[$self->response_code]}];
-    $cgi->header(-status => $self->response_code);
+    $cgi->r->status($self->response_code);
+    $cgi->r->rflush();
+    $cgi->r->status(200);
   }
 
   return 1;
@@ -527,7 +543,6 @@ sub handler {
       $viewobject->output_buffer($decorator->header());
     }
     $viewobject->output_buffer($viewobject->render());
-
   };
 
   #########
