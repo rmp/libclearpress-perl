@@ -125,3 +125,5 @@ t/user/basic.pm
 t/util.pm
 t/view/derived.pm
 t/view/error.pm
+META.yml
+META.json

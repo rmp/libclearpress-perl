@@ -27,10 +27,11 @@ use Carp;
 use ClearPress::decorator;
 use ClearPress::view::error;
 use CGI;
+use HTTP::Status qw(:constants);
 #use Apache2::RequestUtil;
 #use Apache2::Const -compile => qw(:http);
 
-our $VERSION = q[473.0.5];
+our $VERSION = q[474.0.1];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',
@@ -446,6 +447,8 @@ sub handler {
 
   my $decor = $viewobject->decor();
 
+  my $response_code = HTTP_OK;
+
   #########
   # let the view have the decorator in case it wants to modify headers
   #
@@ -469,6 +472,16 @@ sub handler {
     $viewobject->output_buffer($viewobject->render());
 
   } or do {
+    #########
+    # store response if present
+    #
+    if($viewobject->response_code) {
+      $response_code = $viewobject->response_code;
+      carp qq[Serving error response $response_code];
+    }
+
+    $cgi->header(-status => $response_code);
+
     $viewobject = $self->build_error_object("${namespace}::view::error",
 					    $action,
 					    $aspect,
@@ -567,10 +580,13 @@ sub dispatch {
   my $action    = $ref->{action};
   my $id        = $ref->{id};
   my $viewobject;
+  my $status;
 
   eval {
     my $state = $self->is_valid_view($ref, $entity);
     if(!$state) {
+      $status = HTTP_NOT_FOUND;
+
       croak qq(No such view ($entity). Is it in your config.ini?);
     }
 
@@ -584,8 +600,10 @@ sub dispatch {
 					$modelpk?($modelpk => $id):(),
 				       });
     if(!$modelobject) {
+      $status = HTTP_INTERNAL_SERVER_ERROR;
       croak qq(Failed to instantiate $modelobject);
     }
+
     $viewobject = $viewclass->new({
 				   util        => $util,
 				   model       => $modelobject,
@@ -594,11 +612,16 @@ sub dispatch {
 				   entity_name => $entity_name,
 				  });
     if(!$viewobject) {
+      $status = HTTP_INTERNAL_SERVER_ERROR;
       croak qq(Failed to instantiate $viewobject);
     }
+
     1;
 
   } or do {
+    if($status) {
+      $util->cgi->header(-status => $status); # can't do this via $view->response_code()
+    }
     my $namespace = $self->namespace($util);
     $viewobject   = $self->build_error_object("${namespace}::view::error", $action, $aspect, $EVAL_ERROR);
   };

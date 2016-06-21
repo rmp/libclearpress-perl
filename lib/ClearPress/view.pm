@@ -24,8 +24,9 @@ use XML::Simple qw(XMLin);
 use utf8;
 use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
+use HTTP::Status qw(:constants);
 
-our $VERSION = q[473.0.5];
+our $VERSION = q[474.0.1];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
@@ -167,6 +168,18 @@ sub _accessor { ## no critic (ProhibitUnusedPrivateSubroutines)
   return $self->{$field};
 }
 
+sub response_code {
+  my ($self, $status) = @_;
+  my $util = $self->util;
+  my $cgi  = $util->cgi;
+
+  if($status) {
+    $self->{response_code} = $status;
+  }
+
+  return $self->{response_code};
+}
+
 sub authorised {
   my $self      = shift;
   my $action    = $self->action || q[];
@@ -279,9 +292,15 @@ sub render {
   my $requestor = $util->requestor;
 
   if(!$self->authorised) {
+    #########
+    # set http forbidden response code
+    #
+    $self->response_code(HTTP_FORBIDDEN);
+
     if(!$requestor) {
       croak q[Authorisation unavailable for this view.];
     }
+
     my $username = $requestor->username;
     if(!$username) {
       croak q[You are not authorised for this view. You need to log in.];
@@ -1055,6 +1074,12 @@ e.g.
   into $to_scalar.
 
   $oView->process_template('template.tt2', {extra=>'params'}, $to_scalar);
+
+=head2 response_code - set http response code header
+
+  $oView->response_code(HTTP_OK);
+
+  Note this isn't emitted immediately. The last value takes precedence.
 
 =head2 output_buffer - For streamed output: queue a string for output
 
