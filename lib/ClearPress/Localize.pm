@@ -18,7 +18,7 @@ use Locale::Maketext::Lexicon {
   };
 use Carp;
 
-our $VERSION = q[474.0.1];
+our $VERSION = q[474.1.1];
 
 sub init {
   my ($class, $locales) = @_;
@@ -31,7 +31,12 @@ sub lang {
   my $req = {
 	     accept_language => $ENV{HTTP_ACCEPT_LANGUAGE},
 	    };
-  *ClearPress::request::accept_language = sub { my $self = shift; return $self->{accept_language}; };
+
+  my $sym = \%ClearPress::request::;
+  if(!exists $sym->{request_language}) {
+    *ClearPress::request::accept_language = sub { my $self = shift; return $self->{accept_language}; };
+  }
+
   bless $req, 'ClearPress::request';
   my $lang = $lang_detect->language($req);
 

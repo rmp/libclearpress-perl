@@ -30,8 +30,10 @@ use CGI;
 use HTTP::Status qw(:constants);
 #use Apache2::RequestUtil;
 #use Apache2::Const -compile => qw(:http);
+use Readonly;
+Readonly::Scalar my $HTTP_OK => 200; # cheap, non-disruptive Apache2::Const
 
-our $VERSION = q[474.0.1];
+our $VERSION = q[474.1.1];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',
@@ -52,6 +54,7 @@ our $REST   = {
 	      };
 
 our $EXPERIMENTAL_HEADERS = 0;
+
 
 sub accept_extensions {
   return [
@@ -459,7 +462,7 @@ sub set_http_status {
     carp qq[Serving response code @{[$self->response_code]}];
     $cgi->r->status($self->response_code);
     $cgi->r->rflush();
-    $cgi->r->status(200);
+    $cgi->r->status(HTTP_OK);
   }
 
   return 1;

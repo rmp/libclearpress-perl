@@ -21,7 +21,7 @@ use ClearPress::driver;
 use CGI;
 use IO::Capture::Stderr;
 
-our $VERSION = q[474.0.1];
+our $VERSION = q[474.1.1];
 our $DEFAULT_TRANSACTIONS = 1;
 our $DEFAULT_DRIVER       = 'mysql';
 my  $INSTANCES = {};
