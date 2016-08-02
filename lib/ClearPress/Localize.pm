@@ -33,7 +33,7 @@ sub lang {
 	    };
 
   my $sym = \%ClearPress::request::;
-  if(!exists $sym->{request_language}) {
+  if(!exists $sym->{accept_language}) {
     *ClearPress::request::accept_language = sub { my $self = shift; return $self->{accept_language}; };
   }
 
