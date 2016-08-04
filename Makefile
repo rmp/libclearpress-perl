@@ -1,6 +1,6 @@
 MAJOR    ?= 474
 MINOR    ?= 1
-SUB      ?= 1
+SUB      ?= 2
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i
@@ -51,7 +51,7 @@ deb:	manifest
 	$(SEDI) "s/SUB/$(SUB)/g"     tmp/DEBIAN/control
 	$(SEDI) "s/PATCH/$(PATCH)/g" tmp/DEBIAN/control
 	$(SEDI) "s/RELEASE/$(RELEASE)/g" tmp/DEBIAN/control
-	rsync --exclude .svn --exclude .git -va lib/* tmp/usr/lib/perl5/
+	rsync --exclude .svn --exclude .git -va lib/* tmp/usr/share/perl5/
 	rsync --exclude .svn --exclude .git -va bin/* tmp/usr/bin/
 	find tmp -type f ! -regex '.*\(\bDEBIAN\b\|\.\bsvn\b\|\bdeb-src\b\|\.\bgit\b\|\.\bsass-cache\b\|\.\bnetbeans\b\).*'  -exec $(MD5SUM) {} \; | sed 's/tmp\///' > tmp/DEBIAN/md5sums
 	(cd tmp; fakeroot dpkg -b . ../libclearpress-perl-$(MAJOR).$(MINOR).$(SUB)-$(PATCH).deb)
