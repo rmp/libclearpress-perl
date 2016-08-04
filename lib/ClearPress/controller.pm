@@ -33,7 +33,7 @@ use HTTP::Status qw(:constants);
 use Readonly;
 Readonly::Scalar my $HTTP_OK => 200; # cheap, non-disruptive Apache2::Const
 
-our $VERSION = q[474.1.1];
+our $VERSION = q[474.1.2];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',

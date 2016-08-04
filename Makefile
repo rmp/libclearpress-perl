@@ -43,7 +43,7 @@ deb:	manifest
 	make test
 	touch tmp
 	rm -rf tmp
-	mkdir -p tmp/usr/lib/perl5
+	mkdir -p tmp/share/lib/perl5
 	cp -pR deb-src/* tmp/
 	cp tmp/DEBIAN/control.tt2 tmp/DEBIAN/control
 	$(SEDI) "s/MAJOR/$(MAJOR)/g" tmp/DEBIAN/control
