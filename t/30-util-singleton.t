@@ -5,6 +5,7 @@ use warnings;
 use Test::More;
 use English qw(-no_match_vars);
 use Test::Trap;
+use lib qw(.);
 
 eval {
   require DBD::SQLite;
