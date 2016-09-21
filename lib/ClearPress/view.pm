@@ -57,6 +57,7 @@ sub new { ## no critic (Complexity)
   $self->{content_type} ||= ($aspect =~ /_png$/smx)?'image/png':q[];
   $self->{content_type} ||= ($aspect =~ /_jpg$/smx)?'image/jpeg':q[];
   $self->{content_type} ||= ($aspect =~ /_txt$/smx)?'text/plain':q[];
+  $self->{content_type} ||= ($aspect =~ /_csv$/smx)?'text/csv':q[];
   $self->{content_type} ||= ($aspect =~ /_xls$/smx)?'application/vnd.ms-excel':q[];
 
   $self->setup_filters;
@@ -654,8 +655,12 @@ sub decor {
   my $self = shift;
   my $aspect = $self->aspect || q[];
 
-  if($aspect =~ /(?:rss|atom|ajax|xml|json|js|_png|_jpg|_svg|_svgz|_txt)$/smx) {
-    return 0;
+  for my $ending (qw(rss atom ajax xml
+                     json js _png _jpg _svg _svgz
+                     _txt _csv _xls)) {
+    if((substr $aspect, -length $ending, length $ending) eq $ending) {
+      return 0;
+    }
   }
   return 1;
 }
