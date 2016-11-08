@@ -310,6 +310,7 @@ FROM   @{[$class->table()]} f,
 WHERE  t.$through_key = ?
 AND    t.$friend_key  = f.$friend_key
 EOT
+
     $self->{$cachekey} = $self->gen_getarray($class, $query, $self->$through_key())->[0];
   }
 
