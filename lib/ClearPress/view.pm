@@ -170,13 +170,17 @@ sub _accessor { ## no critic (ProhibitUnusedPrivateSubroutines)
 }
 
 sub response_code {
-  my ($self, $status) = @_;
+  my ($self, $status, $headers) = @_;
 
   if($status) {
     $self->{response_code} = $status;
+
+    if($headers) {
+      $self->{response_headers} = $headers;
+    }
   }
 
-  return $self->{response_code};
+  return wantarray ? ($self->{response_code}, $self->{response_headers}) : $self->{response_code};
 }
 
 sub authorised {
@@ -686,7 +690,7 @@ sub output_flush {
 sub output_buffer {
   my ($self, @args) = @_;
   if(!$self->output_finished) {
-    push @{$self->{output_buffer}}, @args;
+    push @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
     $DEBUG_OUTPUT and carp "output_buffer added (@{[scalar @args]} blobs)";
   }
   return 1;
@@ -724,31 +728,9 @@ sub actions {
 }
 
 sub redirect {
-  my ($self, $internal_uri, $status) = @_;
+  my ($self, $url, $status) = @_;
 
-  #########
-  # compile special pieces of mod-perl if not already compiled
-  #
-  for my $pkg (qw(Apache2::RequestRec Apache2::SubRequest)) {
-    my $ns = "$pkg::";
-    no strict 'refs'; ## no critic (ProhibitNoStrict)
-    if(!scalar %{$ns}) {
-      require $pkg;
-      $pkg->import();
-    }
-  }
-
-  my $cgi = $self->util->cgi;
-  my $r   = $cgi->r;
-  if($r) {
-    $r->status($status || '301');
-
-    return $r->redirect($internal_uri);
-  }
-
-  carp q[Redirect support unavailable. Please request it via CPAN RT.];
-
-  return;
+  return $self->response_code($status || HTTP_FOUND, { Location => $url });
 }
 
 # todo: auto-create these <action>_<format> style accessors

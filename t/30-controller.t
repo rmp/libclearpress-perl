@@ -129,7 +129,8 @@ my $T = [
 }
 
 {
-  is($CTRL->packagespace('view', 'testmap', $util),
+  my $ctrl = $CTRL->new({util => $util});
+  is($ctrl->packagespace('view', 'testmap', $util),
      't::view::foo::test',
      'packagemapped space');
 }
@@ -143,9 +144,10 @@ sub request_test {
 		QUERY_STRING   => $t->[2],
 		%{$t->[3]},
 	       );
-  my $ref = [];
+  my $ctrl = $CTRL->new({util => $util});
+  my $ref  = [];
   eval {
-    $ref = [$CTRL->process_request($util)];
+    $ref = [$ctrl->process_request($util)];
 
   } or do {
     diag($EVAL_ERROR);
@@ -195,9 +197,10 @@ for my $b (@{$B}) {
 		QUERY_STRING   => $b->[2],
 		%{$b->[3]},
 	       );
-  my $ref = [];
+  my $ctrl = $CTRL->new({util => $util});
+  my $ref  = [];
   eval {
-    $ref = [$CTRL->process_request($util)];
+    $ref = [$ctrl->process_request($util)];
   };
   if(scalar @{$ref}) {
     diag(join q[,], @{$ref});
@@ -212,8 +215,9 @@ for my $b (@{$B}) {
 		QUERY_STRING   => q[],
 		PATH_INFO      => '/thing/10',
 	       );
+  my $ctrl = $CTRL->new({util => $util});
   trap {
-    $CTRL->handler($util);
+    $ctrl->handler($util);
   };
 
   like($trap->stdout, qr/charset=UTF-8/smx, 'header is UTF-8 by default');

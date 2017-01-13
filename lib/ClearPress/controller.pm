@@ -27,11 +27,7 @@ use Carp;
 use ClearPress::decorator;
 use ClearPress::view::error;
 use CGI;
-use HTTP::Status qw(:constants);
-#use Apache2::RequestUtil;
-#use Apache2::Const -compile => qw(:http);
-use Readonly;
-Readonly::Scalar my $HTTP_OK => 200; # cheap, non-disruptive Apache2::Const
+use HTTP::Status qw(:constants :is);
 
 our $VERSION = q[474.1.2];
 our $CRUD    = {
@@ -84,10 +80,10 @@ sub accept_headers {
 }
 
 sub new {
-  my ($class, $ref) = @_;
-  $ref ||= {};
-  bless $ref, $class;
-  $ref->init();
+  my ($class, $self) = @_;
+  $self ||= {};
+  bless $self, $class;
+  $self->init();
 
   eval {
     #########
@@ -96,17 +92,24 @@ sub new {
     # construction (effectively per-page-view), we rollback any open
     # transaction on the database handle we've been given.
     #
-    $ref->util->dbh->rollback();
+    $self->util->dbh->rollback();
     1;
 
   } or do {
     #########
     # ignore any error
     #
-    carp q[Failed per-request rollback on fresh database handle];
+    carp qq[Failed per-request rollback on fresh database handle: $EVAL_ERROR];
   };
 
-  return $ref;
+  if(!$self->{response_code}) {
+    #########
+    # set an expected default http response code
+    #
+    $self->{response_code} = HTTP_OK;
+  }
+
+  return $self;
 }
 
 sub init {
@@ -129,6 +132,16 @@ sub response_code {
   }
 
   return $self->{response_code};
+}
+
+sub response_headers {
+  my ($self, $headers) = @_;
+
+  if($headers) {
+    $self->{response_headers} = $headers;
+  }
+
+  return $self->{response_headers};
 }
 
 sub packagespace {
@@ -348,17 +361,23 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
   #
   my ($type) = $aspect =~ /^([^_]+)/smx; # read|list|add|edit|create|update|delete
   if($method !~ /^$REST->{$type}$/smx) {
-    croak qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
+    carp qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
+    $self->response_code(HTTP_BAD_REQUEST);
+    return;
   }
 
   if(!$id &&
      $aspect =~ /^(?:delete|update|edit|read)/smx) {
-    croak qq[Bad request. Cannot $aspect without an id];
+    carp qq[Bad request. Cannot $aspect without an id];
+    $self->response_code(HTTP_BAD_REQUEST);
+    return;
   }
 
   if($id &&
      $aspect =~ /^(?:create|add|list)/smx) {
-    croak qq[Bad request. Cannot $aspect with an id];
+    carp qq[Bad request. Cannot $aspect with an id];
+    $self->response_code(HTTP_BAD_REQUEST);
+    return;
   }
 
   $aspect =~ s/__/_/smxg;
@@ -440,30 +459,28 @@ sub session {
 
 sub set_http_status {
   my $self = shift;
+  my $util = $self->util;
+  my $cgi  = $util->cgi;
+  my $r    = $cgi->r;
 
-  if($EXPERIMENTAL_HEADERS) {
-    #########
-    # todo: better-understand the interaction with PerlSendHeaders on
-    #
-    if(!$ENV{MOD_PERL}) {
-      carp q[Warning: status header responses require mod-perl];
-      return;
+  if(!$r) {
+    carp q[Warning: no request object available. Limited HTTP response support.];
+
+    print "Status: @{[$self->response_code]}\n" or croak qq[Error printing: $ERRNO];
+    while(my ($k, $v) = each %{$self->response_headers || {}}) {
+      print "$k: $v\n" or croak qq[Error printing: $ERRNO];
     }
+#    print "Content-type: text/html\n\n" or croak qq[Error printing: $ERRNO];
 
-    my $util = $self->util;
-    my $cgi  = $util->cgi;
-    my $r    = $cgi->r;
-
-    if(!$r) {
-      carp q[Warning: no request object available];
-      return;
-    }
-
-    carp qq[Serving response code @{[$self->response_code]}];
-    $cgi->r->status($self->response_code);
-    $cgi->r->rflush();
-    $cgi->r->status(HTTP_OK);
+    return;
   }
+
+  carp qq[Serving response code @{[$self->response_code]}];
+  $r->status($self->response_code);
+  while(my ($k, $v) = each %{$self->response_headers || {}}) {
+    $r->headers_out->set($k => $v);
+  }
+  $r->rflush();
 
   return 1;
 }
@@ -515,38 +532,81 @@ sub handler {
     $viewobject->output_buffer($decorator->header());
   }
 
+  my $errstr;
   eval {
+    #########
+    # view->render() may be streamed
+    #
     $viewobject->output_buffer($viewobject->render());
-
-    if($viewobject->response_code) {
-      $self->response_code($viewobject->response_code);
-    }
-
-    $self->set_http_status();
-
+    1;
   } or do {
-    if($viewobject->response_code) {
-      carp q[set error view response code];
-      $self->response_code($viewobject->response_code);
-    }
+    carp qq[view->render failed: $EVAL_ERROR];
+    $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);#, {Status => $EVAL_ERROR});
+    $errstr = $EVAL_ERROR;
+  };
 
-    $self->set_http_status();
+  #########
+  # handle special cases like redirect headers
+  #
+  my ($code, $headers) = $viewobject->response_code();
 
-    $viewobject = $self->build_error_object("${namespace}::view::error",
-					    $action,
-					    $aspect,
-					    $EVAL_ERROR);
+  #########
+  # copy response header state from view into self
+  #
+  $self->response_code($code);
+  $self->response_headers({%{$headers || {}}});
+
+  my $bail_early = 0;
+
+  if($code && !is_success($code)) { # is_error | is_redirect
+    $bail_early = 1;
+  }
+
+  #########
+  # emit http response headers based on self->response_code/response_headers
+  #
+  $self->set_http_status();
+
+  #########
+  # bail out of response handler early (trigger subrequest if necessary)
+  #
+  if($bail_early) {
+    #########
+    # force reconstruction of CGI object from subrequest QUERY_STRING
+    #
+    undef $util->{cgi};
 
     #########
-    # reset headers before printing an error
+    # but pass-through the errstr
     #
-    $decor = $viewobject->decor();
-    $viewobject->output_reset();
-    if($decor) {
+    $util->cgi->param('errstr', $cgi->escape($errstr));
+
+    if(!$cgi->r) {
+      #########
+      # non-mod-perl errordocument handled by applicaiton internals
+      #
+      my $namespace = sprintf q[%s::view::error], $self->namespace($util);
+      carp qq[Handling error with $namespace];
+
+      eval {
+        $viewobject = $namespace->new({util => $util});
+      } or do {
+        $viewobject = ClearPress::error->new({util => $util});
+      };
+
       $viewobject->output_buffer($decorator->header());
+      $viewobject->output_buffer($viewobject->render());
+
+    } else {
+      # errordocument subrequest required
+      $viewobject->output_reset;
+      #########
+      # mod-perl errordocument handled by subrequest
+      #
+      return;
     }
-    $viewobject->output_buffer($viewobject->render());
-  };
+#    return;
+  }
 
   #########
   # re-test decor in case it's changed by render()
@@ -567,7 +627,7 @@ sub handler {
 
       my $charset = $viewobject->charset();
       if(defined $charset) {
-	$charset = qq[; charset="$charset"];
+        $charset = qq[; charset="$charset"];
       }
 
       my $content_type = $viewobject->content_type();
@@ -578,19 +638,20 @@ sub handler {
   }
 
   #########
-  # flush everything to client socket (via stdout)
+  # flush everything left to client socket (via stdout)
   #
   $viewobject->output_end();
 
   #########
   # save the session after the request has processed
   #
-  if(!$viewobject->isa('ClearPress::view::error')) {
-    $decorator->save_session();
-  }
+  $decorator->save_session();
 
+  #########
+  # clean up any shared state so it's not carried over (e.g. incomplete transactions)
+  #
   $util->cleanup();
-  undef $util;
+
   return 1;
 }
 
@@ -634,26 +695,30 @@ sub dispatch {
   my $id        = $ref->{id};
   my $viewobject;
 
-  eval {
+#  eval {
     my $state = $self->is_valid_view($ref, $entity);
     if(!$state) {
+      carp qq(No such view ($entity). Is it in your config.ini?);
       $self->response_code(HTTP_NOT_FOUND);
-
-      croak qq(No such view ($entity). Is it in your config.ini?);
+      return;
     }
 
     my $entity_name = $entity;
-    my $modelclass  = $self->packagespace('model', $entity, $util);
     my $viewclass   = $self->packagespace('view',  $entity, $util);
 
-    my $modelpk     = $modelclass->primary_key();
-    my $modelobject = $modelclass->new({
-					util => $util,
-					$modelpk?($modelpk => $id):(),
-				       });
-    if(!$modelobject) {
-      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      croak qq(Failed to instantiate $modelobject);
+    my $modelobject;
+    if($entity ne 'error') {
+      my $modelclass = $self->packagespace('model', $entity, $util);
+      my $modelpk    = $modelclass->primary_key();
+      $modelobject   = $modelclass->new({
+                                         util => $util,
+                                         $modelpk?($modelpk => $id):(),
+                                        });
+      if(!$modelobject) {
+        carp qq(Failed to instantiate $modelobject);
+        $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+        return;
+      }
     }
 
     $viewobject = $viewclass->new({
@@ -662,39 +727,42 @@ sub dispatch {
 				   action      => $action,
 				   aspect      => $aspect,
 				   entity_name => $entity_name,
+                                   decorator   => $self->decorator,
 				  });
     if(!$viewobject) {
+      carp qq[Failed to instantiate $viewobject];
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      croak qq(Failed to instantiate $viewobject);
+      return;
     }
 
-    1;
-
-  } or do {
-    my $namespace = $self->namespace($util);
-    $viewobject   = $self->build_error_object("${namespace}::view::error", $action, $aspect, $EVAL_ERROR);
-  };
+#    1;
+#
+#  } or do {
+#    my $namespace = $self->namespace($util);
+#    $viewobject   = $self->build_error_object("${namespace}::view::error", $action, $aspect, $EVAL_ERROR);
+#  };
 
   return $viewobject;
 }
 
-sub build_error_object {
-  my ($self, $error_pkg, $action, $aspect, $eval_error) = @_;
-  my $obj;
-  my $ref = {
-	     util   => $self->util(),
-	     errstr => $eval_error,
-	     aspect => $aspect,
-	     action => $action,
-	    };
-  eval {
-    $obj = $error_pkg->new($ref);
-  } or do {
-    $obj = ClearPress::view::error->new($ref);
-  };
-
-  return $obj;
-}
+#sub build_error_object {
+#  my ($self, $error_pkg, $action, $aspect, $eval_error) = @_;
+#  my $obj;
+#  my $ref = {
+#	     util   => $self->util(),
+#	     errstr => $eval_error,
+#	     aspect => $aspect,
+#	     action => $action,
+#            decorator => $self->decorator,
+#	    };
+#  eval {
+#    $obj = $error_pkg->new($ref);
+#  } or do {
+#    $obj = ClearPress::view::error->new($ref);
+#  };
+#
+#  return $obj;
+#}
 
 1;
 __END__
@@ -773,9 +841,11 @@ $Revision: 470 $
 
 =head2 is_valid_view - view-name validation
 
-=head2 build_error_object - builds an error view object
+#=head2 build_error_object - builds an error view object
 
 =head2 response_code - wrap view->response_code and extend with more error statuses
+
+=head2 response_headers - wrap view->response_code
 
 =head2 set_http_status - configure outbound response status header via CGI.pm
 
