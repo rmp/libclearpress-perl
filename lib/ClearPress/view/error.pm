@@ -66,7 +66,7 @@ sub render {
   my $cgi    = $util->cgi;
   my $aspect = $self->aspect();
   my $errstr = $cgi->unescape($cgi->param('errstr') || q[]);
-  my $code   = $ENV{REDIRECT_STATUS};#$ENV{PATH_INFO} =~ m{(\d+)}smix;
+  my ($code) = $ENV{PATH_INFO} =~ m{(\d+)}smix; # mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
 
   $errstr ||= $CODEMAP->{$code};
 
@@ -98,7 +98,7 @@ sub render {
 
   } else {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
-    $content = q(<div id="main"><h2 class="error">An Error Occurred</h2>) .  $self->actions() . q(<p class="error">) . $escaped . q(</p></div>);
+    $content = sprintf q[<div id="main"><h2 class="error">An Error Occurred</h2>%s<p class="error">%s</p></div>], $self->actions(), $escaped;
   }
 
   $self->output_buffer($content);
