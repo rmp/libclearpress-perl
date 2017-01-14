@@ -470,7 +470,6 @@ sub set_http_status {
     while(my ($k, $v) = each %{$self->response_headers || {}}) {
       print "$k: $v\n" or croak qq[Error printing: $ERRNO];
     }
-#    print "Content-type: text/html\n\n" or croak qq[Error printing: $ERRNO];
 
     return;
   }
@@ -605,7 +604,6 @@ sub handler {
       #
       return;
     }
-#    return;
   }
 
   #########
@@ -695,74 +693,47 @@ sub dispatch {
   my $id        = $ref->{id};
   my $viewobject;
 
-#  eval {
-    my $state = $self->is_valid_view($ref, $entity);
-    if(!$state) {
-      carp qq(No such view ($entity). Is it in your config.ini?);
-      $self->response_code(HTTP_NOT_FOUND);
-      return;
-    }
+  my $state = $self->is_valid_view($ref, $entity);
+  if(!$state) {
+    carp qq(No such view ($entity). Is it in your config.ini?);
+    $self->response_code(HTTP_NOT_FOUND);
+    return;
+  }
 
-    my $entity_name = $entity;
-    my $viewclass   = $self->packagespace('view',  $entity, $util);
+  my $entity_name = $entity;
+  my $viewclass   = $self->packagespace('view',  $entity, $util);
 
-    my $modelobject;
-    if($entity ne 'error') {
-      my $modelclass = $self->packagespace('model', $entity, $util);
-      my $modelpk    = $modelclass->primary_key();
-      $modelobject   = $modelclass->new({
-                                         util => $util,
-                                         $modelpk?($modelpk => $id):(),
-                                        });
-      if(!$modelobject) {
-        carp qq(Failed to instantiate $modelobject);
-        $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-        return;
-      }
-    }
-
-    $viewobject = $viewclass->new({
-				   util        => $util,
-				   model       => $modelobject,
-				   action      => $action,
-				   aspect      => $aspect,
-				   entity_name => $entity_name,
-                                   decorator   => $self->decorator,
-				  });
-    if(!$viewobject) {
-      carp qq[Failed to instantiate $viewobject];
+  my $modelobject;
+  if($entity ne 'error') {
+    my $modelclass = $self->packagespace('model', $entity, $util);
+    my $modelpk    = $modelclass->primary_key();
+    $modelobject   = $modelclass->new({
+                                       util => $util,
+                                       $modelpk?($modelpk => $id):(),
+                                      });
+    if(!$modelobject) {
+      carp qq(Failed to instantiate $modelobject);
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
       return;
     }
+  }
 
-#    1;
-#
-#  } or do {
-#    my $namespace = $self->namespace($util);
-#    $viewobject   = $self->build_error_object("${namespace}::view::error", $action, $aspect, $EVAL_ERROR);
-#  };
+  $viewobject = $viewclass->new({
+                                 util        => $util,
+                                 model       => $modelobject,
+                                 action      => $action,
+                                 aspect      => $aspect,
+                                 entity_name => $entity_name,
+                                 decorator   => $self->decorator,
+                                });
+  if(!$viewobject) {
+    carp qq[Failed to instantiate $viewobject];
+    $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    return;
+  }
 
   return $viewobject;
 }
-
-#sub build_error_object {
-#  my ($self, $error_pkg, $action, $aspect, $eval_error) = @_;
-#  my $obj;
-#  my $ref = {
-#	     util   => $self->util(),
-#	     errstr => $eval_error,
-#	     aspect => $aspect,
-#	     action => $action,
-#            decorator => $self->decorator,
-#	    };
-#  eval {
-#    $obj = $error_pkg->new($ref);
-#  } or do {
-#    $obj = ClearPress::view::error->new($ref);
-#  };
-#
-#  return $obj;
-#}
 
 1;
 __END__
