@@ -29,7 +29,7 @@ use ClearPress::view::error;
 use CGI;
 use HTTP::Status qw(:constants :is);
 
-our $VERSION = q[474.1.2];
+our $VERSION = q[475.1.2];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',
