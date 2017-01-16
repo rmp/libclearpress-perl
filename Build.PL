@@ -74,7 +74,9 @@ my $builder = Module::Build->new(
                                  configure_requires  => {
                                                          'Module::Build'           => '0.38',
                                                         },
+                                 recursive_test_files => 1,
 				 script_files        => [qw(bin/clearpress)],
+
 				);
 
 $builder->create_build_script();

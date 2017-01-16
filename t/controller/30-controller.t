@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Test::More;
-use t::util;
 use English qw(-no_match_vars);
 use Test::Trap;
 
@@ -13,6 +12,9 @@ eval {
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
+use t::util;
 
 our $CTRL = 'ClearPress::controller';
 use_ok($CTRL);

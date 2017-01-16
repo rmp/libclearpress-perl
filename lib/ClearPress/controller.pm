@@ -464,7 +464,7 @@ sub set_http_status {
   my $r    = $cgi->r;
 
   if(!$r) {
-    carp q[Warning: no request object available. Limited HTTP response support.];
+#    carp q[Warning: no request object available. Limited HTTP response support.];
 
     print "Status: @{[$self->response_code]}\n" or croak qq[Error printing: $ERRNO];
     while(my ($k, $v) = each %{$self->response_headers || {}}) {
@@ -484,7 +484,7 @@ sub set_http_status {
   return 1;
 }
 
-sub handler {
+sub handler { ## no critic (Complexity)
   my ($self, $util) = @_;
   if(!ref $self) {
     $self = $self->new({util => $util});
@@ -584,11 +584,11 @@ sub handler {
       #########
       # non-mod-perl errordocument handled by applicaiton internals
       #
-      my $namespace = sprintf q[%s::view::error], $self->namespace($util);
-      carp qq[Handling error with $namespace];
+      my $error_ns = sprintf q[%s::view::error], $namespace;
+      carp qq[Handling error with $error_ns];
 
       eval {
-        $viewobject = $namespace->new({util => $util});
+        $viewobject = $error_ns->new({util => $util});
       } or do {
         $viewobject = ClearPress::error->new({util => $util});
       };

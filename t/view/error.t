@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Test::More;
-use t::util;
 use English qw(-no_match_vars);
 use Carp;
 #use HTML::TreeBuilder;
@@ -17,6 +16,9 @@ eval {
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
+use t::util;
 
 use_ok('ClearPress::view::error');
 

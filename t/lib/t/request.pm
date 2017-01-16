@@ -48,6 +48,7 @@ sub new {
   local $ENV{REQUEST_URI}           = "/request$ref->{PATH_INFO}";
 
   my $stdin = q[];
+  no warnings qw(redefine once);
   local *IO::Scalar::BINMODE = sub {};
   tie *STDIN, 'IO::Scalar', \$stdin;
 
