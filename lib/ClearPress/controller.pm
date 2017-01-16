@@ -166,7 +166,6 @@ sub packagespace {
   }
 
   my $namespace = $self->namespace($util);
-#carp qq[namespace=$namespace, type=$type, entity=$entity caller=],caller();
   return "${namespace}::${type}::$entity";
 }
 
@@ -361,23 +360,20 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
   #
   my ($type) = $aspect =~ /^([^_]+)/smx; # read|list|add|edit|create|update|delete
   if($method !~ /^$REST->{$type}$/smx) {
-    carp qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
     $self->response_code(HTTP_BAD_REQUEST);
-    return;
+    croak qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
   }
 
   if(!$id &&
      $aspect =~ /^(?:delete|update|edit|read)/smx) {
-    carp qq[Bad request. Cannot $aspect without an id];
     $self->response_code(HTTP_BAD_REQUEST);
-    return;
+    croak qq[Bad request. Cannot $aspect without an id];
   }
 
   if($id &&
      $aspect =~ /^(?:create|add|list)/smx) {
-    carp qq[Bad request. Cannot $aspect with an id];
     $self->response_code(HTTP_BAD_REQUEST);
-    return;
+    croak qq[Bad request. Cannot $aspect with an id];
   }
 
   $aspect =~ s/__/_/smxg;
@@ -510,6 +506,9 @@ sub handler { ## no critic (Complexity)
 				    action => $action,
 				    id     => $id,
 				   });
+  #########
+  # boolean
+  #
   my $decor = $viewobject->decor();
 
   #########
@@ -540,7 +539,7 @@ sub handler { ## no critic (Complexity)
     1;
   } or do {
     carp qq[view->render failed: $EVAL_ERROR];
-    $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);#, {Status => $EVAL_ERROR});
+    $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);
     $errstr = $EVAL_ERROR;
   };
 
@@ -599,7 +598,7 @@ sub handler { ## no critic (Complexity)
     eval {
       $viewobject = $error_ns->new({util => $util});
     } or do {
-      $viewobject = ClearPress::error->new({util => $util});
+      $viewobject = ClearPress::view::error->new({util => $util});
     };
 
     $viewobject->output_buffer($decorator->header());
@@ -694,9 +693,8 @@ sub dispatch {
 
   my $state = $self->is_valid_view($ref, $entity);
   if(!$state) {
-    carp qq(No such view ($entity). Is it in your config.ini?);
     $self->response_code(HTTP_NOT_FOUND);
-    return;
+    croak qq(No such view ($entity). Is it in your config.ini?);
   }
 
   my $entity_name = $entity;
@@ -705,30 +703,40 @@ sub dispatch {
   my $modelobject;
   if($entity ne 'error') {
     my $modelclass = $self->packagespace('model', $entity, $util);
-    my $modelpk    = $modelclass->primary_key();
-    $modelobject   = $modelclass->new({
-                                       util => $util,
-                                       $modelpk?($modelpk => $id):(),
-                                      });
+    eval {
+      my $modelpk    = $modelclass->primary_key();
+      $modelobject   = $modelclass->new({
+                                         util => $util,
+                                         $modelpk?($modelpk => $id):(),
+                                        });
+      1;
+    } or do {
+      # bail out
+    };
+
     if(!$modelobject) {
-      carp qq(Failed to instantiate $modelobject);
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      return;
+      croak qq[Failed to instantiate $entity model: $EVAL_ERROR];
     }
   }
 
-  $viewobject = $viewclass->new({
-                                 util        => $util,
-                                 model       => $modelobject,
-                                 action      => $action,
-                                 aspect      => $aspect,
-                                 entity_name => $entity_name,
-                                 decorator   => $self->decorator,
-                                });
+  eval {
+    $viewobject = $viewclass->new({
+                                   util        => $util,
+                                   model       => $modelobject,
+                                   action      => $action,
+                                   aspect      => $aspect,
+                                   entity_name => $entity_name,
+                                   decorator   => $self->decorator,
+                                  });
+    1;
+  } or do {
+    # bail out
+  };
+
   if(!$viewobject) {
-    carp qq[Failed to instantiate $viewobject];
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-    return;
+    croak qq[Failed to instantiate $entity view: $EVAL_ERROR];
   }
 
   return $viewobject;

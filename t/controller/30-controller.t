@@ -158,6 +158,7 @@ sub request_test {
   is((join q[,], @{$ref}),
      (join q[,], grep { defined } @{$t}[4..7]),
      "$t->[0] $t->[1]?$t->[2] => @{[join q[, ], grep {defined} @{$t}[4..7]]}");
+  delete $util->{cgi};
 }
 
 for my $t (@{$T}) {
@@ -178,7 +179,7 @@ for my $t (@{$T}) {
   request_test(['GET', '/', '', {}]);
 }
 
-my $B = [
+my $B = [# METHOD PATH_INFO    QUERY_STRING CGI COMMENT
 	 ['POST', '/thing/10;read_xml', '', {}, 'update vs. read'],
 	 ['POST', '/thing;read',        '', {}, 'create vs. read'],
 	 ['GET',  '/thing/10;delete',   '', {}, 'read vs. delete'],
@@ -204,23 +205,40 @@ for my $b (@{$B}) {
   eval {
     $ref = [$ctrl->process_request($util)];
   };
+
   if(scalar @{$ref}) {
     diag(join q[,], @{$ref});
   }
+
   like($EVAL_ERROR, qr/Bad[ ]request/smx, $b->[4]);
+  delete $util->{cgi};
 }
 
 {
+  delete $util->{config};
+
   local %ENV = (
 		DOCUMENT_ROOT  => 't/htdocs',
 		REQUEST_METHOD => 'GET',
 		QUERY_STRING   => q[],
 		PATH_INFO      => '/thing/10',
 	       );
+
   my $ctrl = $CTRL->new({util => $util});
   trap {
     $ctrl->handler($util);
   };
 
   like($trap->stdout, qr/charset=UTF-8/smx, 'header is UTF-8 by default');
+  delete $util->{cgi};
 }
+
+package t::view::thing;
+use base qw(ClearPress::view);
+
+1;
+
+package t::model::thing;
+use base qw(ClearPress::model);
+
+1;
