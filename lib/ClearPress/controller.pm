@@ -573,37 +573,37 @@ sub handler { ## no critic (Complexity)
     #########
     # force reconstruction of CGI object from subrequest QUERY_STRING
     #
-    undef $util->{cgi};
+    delete $util->{cgi};
 
     #########
     # but pass-through the errstr
     #
     $util->cgi->param('errstr', $cgi->escape($errstr));
 
-    if(!$cgi->r) {
-      #########
-      # non-mod-perl errordocument handled by applicaiton internals
-      #
-      my $error_ns = sprintf q[%s::view::error], $namespace;
-      carp qq[Handling error with $error_ns];
+    $viewobject->output_finished(0);
+    $viewobject->output_reset();
 
-      eval {
-        $viewobject = $error_ns->new({util => $util});
-      } or do {
-        $viewobject = ClearPress::error->new({util => $util});
-      };
-
-      $viewobject->output_buffer($decorator->header());
-      $viewobject->output_buffer($viewobject->render());
-
-    } else {
-      # errordocument subrequest required
-      $viewobject->output_reset;
+    if($cgi->r) {
       #########
       # mod-perl errordocument handled by subrequest
       #
       return;
     }
+
+    #########
+    # non-mod-perl errordocument handled by application internals
+    #
+    my $error_ns = sprintf q[%s::view::error], $namespace;
+    carp qq[Handling error with $error_ns];
+
+    eval {
+      $viewobject = $error_ns->new({util => $util});
+    } or do {
+      $viewobject = ClearPress::error->new({util => $util});
+    };
+
+    $viewobject->output_buffer($decorator->header());
+    $viewobject->output_buffer($viewobject->render());
   }
 
   #########
@@ -613,7 +613,6 @@ sub handler { ## no critic (Complexity)
     #########
     # assume it's safe to re-open the output stream (Eesh!)
     #
-    $viewobject->output_finished(0);
     $viewobject->output_buffer($decorator->footer());
 
   } else {

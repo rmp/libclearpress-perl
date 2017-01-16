@@ -66,7 +66,8 @@ sub render {
   my $cgi    = $util->cgi;
   my $aspect = $self->aspect();
   my $errstr = $cgi->unescape($cgi->param('errstr') || q[]);
-  my ($code) = $ENV{PATH_INFO} =~ m{(\d+)}smix; # mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
+  my $pi     = $ENV{PATH_INFO} || q[];
+  my ($code) = $pi =~ m{(\d+)}smix; # mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
 
   $errstr ||= $CODEMAP->{$code};
 
@@ -90,20 +91,20 @@ sub render {
 
   if($aspect =~ /(?:ajax|xml|rss|atom)$/smx) {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
-    $content = qq[<?xml version='1.0'?>\n<error>$escaped</error>];
+    $content = qq[<?xml version='1.0'?>\n<error>Error: $escaped</error>];
 
   } elsif($aspect =~ /json$/smx) {
     my $escaped = $self->tt_filters->{js_string}->($errstr);
-    $content = qq[{"error":"$escaped"}];
+    $content = qq[{"error":"Error: $escaped"}];
 
   } else {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
-    $content = sprintf q[<div id="main"><h2 class="error">An Error Occurred</h2>%s<p class="error">%s</p></div>], $self->actions(), $escaped;
+    $content = sprintf q[<div id="main"><h2 class="error">%s</h2>%s<p class="error">Error: %s</p></div>], $CODEMAP->{$code} || q[An Error Occurred], $self->actions(), $escaped;
   }
 
-  $self->output_buffer($content);
+  #$self->output_buffer($content);
 
-  return q[];
+  return $content;
 }
 
 1;
