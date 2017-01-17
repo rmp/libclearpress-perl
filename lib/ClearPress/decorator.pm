@@ -15,6 +15,7 @@ use warnings;
 use CGI qw(param);
 use base qw(Class::Accessor);
 use Readonly;
+use Carp;
 
 our $VERSION = q[475.1.2];
 our $DEFAULTS = {
@@ -84,6 +85,7 @@ sub new {
 sub header {
   my ($self) = @_;
 
+carp qq[decorator header:\n].$self->http_header;
   return $self->http_header() . $self->site_header();
 }
 
@@ -94,7 +96,7 @@ sub cookie {
     $self->{'cookie'} = \@cookies;
   }
 
-  return @{$self->{'cookie'}||[]};
+  return @{$self->{cookie}||[]};
 }
 
 sub http_header {

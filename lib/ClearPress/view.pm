@@ -47,7 +47,7 @@ sub new { ## no critic (Complexity)
   $self->{output_buffer}      = [];
   $self->{output_finished}    = 0;
   $self->{autoescape}         = 1;
-  $self->{response_code}      = HTTP_OK;
+#  $self->{response_code}      = HTTP_OK; # let controller decide the default - easier to determine if view failed deliberately
   $self->{response_headers}   = {};
 
   my $aspect = $self->aspect || q[];
@@ -175,6 +175,7 @@ sub response_code {
   my ($self, $status, $headers) = @_;
 
   if($status) {
+    carp qq[view: replacing response_code $self->{response_code} with $status];
     $self->{response_code} = $status;
 
     if($headers) {
@@ -197,6 +198,10 @@ sub response_code {
 
     my $content_type = $self->content_type();
     $tmp->{'Content-Type'} = qq[$content_type$charset];
+  }
+
+  if($ENV{dev} && $ENV{dev} =~ m{dev(?:elopment)}smix) {
+    $tmp->{'X-Generated-By'} = sprintf q[ClearPress v%s], $VERSION;
   }
 
   return ($self->{response_code}, $self->{response_headers});
@@ -350,6 +355,7 @@ sub render {
     for my $str_aspect (@{$self->streamed_aspects}) {
       if($aspect eq $str_aspect) {
 	$streamed = 1;
+        last;
       }
     }
 
@@ -460,7 +466,7 @@ sub process_template { ## no critic (Complexity)
     $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
 
   } else {
-    $self->tt->process($template, $params) or croak $self->tt->error;
+    $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
   }
 
   return 1;
@@ -693,7 +699,7 @@ sub output_flush {
   $DEBUG_OUTPUT and carp "output_flush: @{[scalar @{$self->{output_buffer}}]} blobs in queue";
 
   eval {
-    print @{$self->{output_buffer}} or croak "Error flushing output: $ERRNO";
+    print @{$self->{output_buffer}} or croak $ERRNO;
     1;
   } or do {
     #########
