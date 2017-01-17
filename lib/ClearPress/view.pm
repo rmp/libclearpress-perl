@@ -47,6 +47,8 @@ sub new { ## no critic (Complexity)
   $self->{output_buffer}      = [];
   $self->{output_finished}    = 0;
   $self->{autoescape}         = 1;
+  $self->{response_code}      = HTTP_OK;
+  $self->{response_headers}   = {};
 
   my $aspect = $self->aspect || q[];
 
@@ -176,11 +178,28 @@ sub response_code {
     $self->{response_code} = $status;
 
     if($headers) {
-      $self->{response_headers} = $headers;
+      while(my ($k, $v) = each %{$headers}) {
+        $self->{response_headers}->{$k} = $v;
+      }
     }
   }
 
-  return wantarray ? ($self->{response_code}, $self->{response_headers}) : $self->{response_code};
+  if(!wantarray) {
+    return $self->{response_code};
+  }
+
+  my $tmp = $self->{response_headers};
+  if(!$tmp->{content_type}) {
+    my $charset = $self->charset;
+    if(defined $charset) {
+      $charset = qq[; charset="$charset"];
+    }
+
+    my $content_type = $self->content_type();
+    $tmp->{'Content-Type'} = qq[$content_type$charset];
+  }
+
+  return ($self->{response_code}, $self->{response_headers});
 }
 
 sub authorised {

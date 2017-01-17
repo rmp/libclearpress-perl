@@ -4,7 +4,6 @@ cgi-bin/application
 cgi-bin/login
 cgi-bin/logout
 Changes
-ClearPress-v475.1.2.tar.gz
 deb-src/DEBIAN/changelog
 deb-src/DEBIAN/control.tt2
 examples/GrandKids/bin/GrandKids

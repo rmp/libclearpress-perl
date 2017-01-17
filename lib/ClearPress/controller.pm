@@ -467,7 +467,7 @@ sub set_http_status {
       print "$k: $v\n" or croak qq[Error printing: $ERRNO];
     }
 
-    return;
+    return 1;
   }
 
   carp qq[Serving response code @{[$self->response_code]}];
@@ -494,10 +494,6 @@ sub handler { ## no critic (Complexity)
 
   $util->username($decorator->username());
   $util->session($self->session($util));
-
-  if(!$self->response_code) {
-    $self->response_code(HTTP_OK);
-  }
 
   my $viewobject = $self->dispatch({
 				    util   => $util,
@@ -536,6 +532,7 @@ sub handler { ## no critic (Complexity)
     # view->render() may be streamed
     #
     $viewobject->output_buffer($viewobject->render());
+carp qq[rendered block outout];
     1;
   } or do {
     carp qq[view->render failed: $EVAL_ERROR];
@@ -547,7 +544,7 @@ sub handler { ## no critic (Complexity)
   # handle special cases like redirect headers
   #
   my ($code, $headers) = $viewobject->response_code();
-
+carp qq[code=$code];
   #########
   # copy response header state from view into self
   #
@@ -555,7 +552,7 @@ sub handler { ## no critic (Complexity)
   $self->response_headers({%{$headers || {}}});
 
   my $bail_early = 0;
-
+carp qq[bail_early=$bail_early];
   if($code && !is_success($code)) { # is_error | is_redirect
     $bail_early = 1;
   }
@@ -564,7 +561,7 @@ sub handler { ## no critic (Complexity)
   # emit http response headers based on self->response_code/response_headers
   #
   $self->set_http_status();
-
+carp qq[after set_http_status];
   #########
   # bail out of response handler early (trigger subrequest if necessary)
   #
@@ -578,17 +575,17 @@ sub handler { ## no critic (Complexity)
     # but pass-through the errstr
     #
     $util->cgi->param('errstr', $cgi->escape($errstr));
-
+carp qq[bailing early];
     $viewobject->output_finished(0);
     $viewobject->output_reset();
-
+carp qq[reset output];
     if($cgi->r) {
       #########
       # mod-perl errordocument handled by subrequest
       #
       return;
     }
-
+carp qq[not running in modperl];
     #########
     # non-mod-perl errordocument handled by application internals
     #
@@ -609,35 +606,40 @@ sub handler { ## no critic (Complexity)
   # re-test decor in case it's changed by render()
   #
   if($viewobject->decor()) {
+carp qq[decorated footer];
     #########
     # assume it's safe to re-open the output stream (Eesh!)
     #
     $viewobject->output_buffer($decorator->footer());
 
-  } else {
+  }
+# else {
+carp qq[header fiddling];
     #########
     # prepend content-type to output buffer
     #
-    if(!$viewobject->output_finished()) {
-      print qq(X-Generated-By: ClearPress\n) or croak $ERRNO;
+#    if(!$viewobject->output_finished()) {
+#carp qq[prepending headers];
+#      print qq(X-Generated-By: ClearPress\n) or croak $ERRNO;
 
-      my $charset = $viewobject->charset();
-      if(defined $charset) {
-        $charset = qq[; charset="$charset"];
-      }
+#      my $charset = $viewobject->charset();
+#      if(defined $charset) {
+#        $charset = qq[; charset="$charset"];
+#      }
 
-      my $content_type = $viewobject->content_type();
-      $content_type = qq[Content-type: $content_type$charset\n\n];
-
-      print $content_type or croak $ERRNO;
-    }
-  }
-
+#      my $content_type = $viewobject->content_type();
+#      $content_type = qq[Content-type: $content_type$charset\n\n];
+#
+#      print $content_type or croak $ERRNO;
+#    }
+#  }
+carp qq[output_end];
   #########
   # flush everything left to client socket (via stdout)
   #
   $viewobject->output_end();
 
+carp qq[cleaning up];
   #########
   # save the session after the request has processed
   #
@@ -715,6 +717,7 @@ sub dispatch {
     };
 
     if(!$modelobject) {
+carp qq[No model];
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
       croak qq[Failed to instantiate $entity model: $EVAL_ERROR];
     }
@@ -735,6 +738,7 @@ sub dispatch {
   };
 
   if(!$viewobject) {
+carp qq[No view];
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
     croak qq[Failed to instantiate $entity view: $EVAL_ERROR];
   }
