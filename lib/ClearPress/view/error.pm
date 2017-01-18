@@ -89,7 +89,7 @@ sub render {
   my $content = q[];
   my $decor   = $self->decor;
 
-  carp qq[$self view::error: handling error response];
+#  carp qq[$self view::error: handling error response];
   if($aspect =~ /(?:ajax|xml|rss|atom)$/smx) {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
     $content = qq[<?xml version='1.0'?>\n<error>Error: $escaped</error>];

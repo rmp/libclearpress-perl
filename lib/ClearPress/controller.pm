@@ -457,15 +457,13 @@ sub set_http_status {
   my $util = $self->util;
   my $cgi  = $util->cgi;
   my $r    = $cgi->r;
-
   my $headers = $self->response_headers || {};
   my $status  = $self->response_code;
 
-  carp qq[controlled::set_http_status: sending headers];
-  use Data::Dumper; carp Dumper({Status => $status, %{$headers}});
+#  use Data::Dumper; carp Dumper({Status => $status, %{$headers}});
 
-  if(!$r) {
-    carp qq[set_http_status [cgi] printing headers];
+  if(!$cgi->r) {
+#    carp qq[set_http_status [cgi] printing headers];
     print "Status: @{[$self->response_code]}\n" or croak qq[Error printing: $ERRNO];
 
     while(my ($k, $v) = each %{$headers}) {
@@ -475,7 +473,7 @@ sub set_http_status {
     return 1;
   }
 
-  carp qq[set_http_status [mp] printing headers];
+#  carp qq[set_http_status [mp] printing headers];
   $r->status($self->response_code);
   while(my ($k, $v) = each %{$headers}) {
     $r->headers_out->set($k => $v);
@@ -513,7 +511,7 @@ sub handler { ## no critic (Complexity)
     return $self->handle_error();
   }
 
-  carp qq[controller::handler: successful $viewobject];
+#  carp qq[controller::handler: successful $viewobject];
   my $decor = $viewobject->decor(); # boolean
 
   #########
@@ -540,12 +538,12 @@ sub handler { ## no critic (Complexity)
     #########
     # view->render() may be streamed
     #
-    carp qq[controller::handler: rendering block output for $viewobject];
+#    carp qq[controller::handler: rendering block output for $viewobject];
     $viewobject->output_buffer($viewobject->render());
-    carp qq[controller::handler: rendered block output for $viewobject];
+#    carp qq[controller::handler: rendered block output for $viewobject];
     1;
   } or do {
-    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
+#    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $self->errstr($EVAL_ERROR);
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
     $self->set_http_status();
@@ -564,7 +562,7 @@ sub handler { ## no critic (Complexity)
   $self->response_headers({%{$headers || {}}});
 
   my $bail_early = 0;
-  carp qq[controller::handler: bail_early=$bail_early];
+#  carp qq[controller::handler: bail_early=$bail_early];
   if($code && !is_success($code)) { # is_error | is_redirect
     $bail_early = 1;
   }
@@ -573,7 +571,7 @@ sub handler { ## no critic (Complexity)
   # emit http response headers based on self->response_code/response_headers
   #
   $self->set_http_status();
-  carp qq[controller::handler: after set_http_status];
+#  carp qq[controller::handler: after set_http_status];
   #########
   # bail out of response handler early (trigger subrequest if necessary)
   #
@@ -585,20 +583,20 @@ sub handler { ## no critic (Complexity)
   # re-test decor in case it's changed by render()
   #
   if($viewobject->decor()) {
-    carp qq[controller::handler: decorated footer];
+#    carp qq[controller::handler: decorated footer];
     #########
     # dump footer
     #
     $viewobject->output_buffer($decorator->footer());
   }
 
-  carp qq[controller::handler: output_end];
+#  carp qq[controller::handler: output_end];
   #########
   # flush everything left to client socket (via stdout)
   #
   $viewobject->output_end();
 
-  carp qq[controller::handler: cleaning up];
+#  carp qq[controller::handler: cleaning up];
   #########
   # save the session after the request has processed
   #
@@ -630,7 +628,7 @@ sub handle_error {
   #########
   # but pass-through the errstr
   #
-  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
+#  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
 #  $viewobject->output_finished(0);
@@ -646,7 +644,7 @@ sub handle_error {
     #########
     # mod-perl errordocument handled by subrequest
     #
-    carp qq[controller::handle_error: mod_perl error response];
+#    carp qq[controller::handle_error: mod_perl error response];
     return;
   }
 
@@ -654,7 +652,7 @@ sub handle_error {
   # non-mod-perl errordocument handled by application internals
   #
   my $error_ns = sprintf q[%s::view::error], $namespace;
-  carp qq[controller::handle_error: handling error with $error_ns];
+#  carp qq[controller::handle_error: handling error with $error_ns];
 
   my $viewobject;
   eval {
@@ -669,7 +667,7 @@ sub handle_error {
   };
 
   my $str = $decorator->header . $viewobject->render . $decorator->footer;
-  carp qq[controller::handle_error: error doc:\n$str\n];
+#  carp qq[controller::handle_error: error doc:\n$str\n];
   $viewobject->output_buffer($str);
   $viewobject->output_end();
   $decorator->save_session();
