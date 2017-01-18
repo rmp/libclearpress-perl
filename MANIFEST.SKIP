@@ -73,3 +73,5 @@
 ^test.db
 META.yml
 META.json
+tmp/
+libclearpress-.*deb

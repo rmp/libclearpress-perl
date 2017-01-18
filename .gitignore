@@ -19,3 +19,5 @@ nytprof.out
 /_eumm/
 test.db
 ClearPress*gz
+tmp/
+libclearpress*deb
