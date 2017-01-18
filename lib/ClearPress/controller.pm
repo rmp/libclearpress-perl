@@ -420,7 +420,6 @@ sub decorator {
     my $decor;
 
     eval {
-      require $decorpkg;
       $decor = $decorpkg->new();
       1;
     } or do {
@@ -678,7 +677,8 @@ sub handle_error {
     $viewobject = ClearPress::view::error->new({util => $util});
   };
 
-  my $str = $decorator->header . $viewobject->render . $decorator->footer;
+  my $decor = $viewobject->decor();
+  my $str = ($decor ? $decorator->header : q[]) . $viewobject->render . ($decor ? $decorator->footer : q[]);
 #  carp qq[controller::handle_error: error doc:\n$str\n];
   $viewobject->output_buffer($str);
   $viewobject->output_end();
