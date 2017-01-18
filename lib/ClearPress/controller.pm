@@ -448,7 +448,14 @@ sub session {
 }
 
 sub set_http_status {
-  my $self = shift;
+  my ($self, $cb) = @_;
+
+  if(!$cb) {
+    $cb = sub {
+      my @args = @_;
+      print @args or croak qq[Error printing: $ERRNO];
+    };
+  }
 
   if($self->{headers_sent}++) {
     return;
@@ -464,10 +471,10 @@ sub set_http_status {
 
   if(!$cgi->r) {
 #    carp qq[set_http_status [cgi] printing headers];
-    print "Status: @{[$self->response_code]}\n" or croak qq[Error printing: $ERRNO];
+    $cb->("Status: @{[$self->response_code]}\n");
 
     while(my ($k, $v) = each %{$headers}) {
-      print "$k: $v\n" or croak qq[Error printing: $ERRNO];
+      $cb->("$k: $v\n");
     }
 
     return 1;
@@ -551,7 +558,7 @@ sub handler {
 #    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $self->errstr($EVAL_ERROR);
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-    $self->set_http_status();
+    $self->set_http_status(sub { my @args = @_; $viewobject->prepend_buffer(@args); });
     return $self->handle_error();
   };
 
@@ -575,7 +582,7 @@ sub handler {
   #########
   # emit http response headers based on self->response_code/response_headers
   #
-  $self->set_http_status();
+  $self->set_http_status(sub { my @args = @_; $viewobject->prepend_buffer(@args); });
 #  carp qq[controller::handler: after set_http_status];
   #########
   # bail out of response handler early (trigger subrequest if necessary)

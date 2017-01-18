@@ -707,6 +707,15 @@ sub output_flush {
   return 1;
 }
 
+sub prepend_buffer {
+  my ($self, @args) = @_;
+  if(!$self->output_finished) {
+    unshift @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
+    $DEBUG_OUTPUT and carp "output_buffer prepended (@{[scalar @args]} blobs)";
+  }
+  return 1;
+}
+
 sub output_buffer {
   my ($self, @args) = @_;
   if(!$self->output_finished) {
@@ -1090,6 +1099,11 @@ e.g.
 
   $oView->output_buffer(q[my string]);
   $oView->output_buffer(@aStrings);
+
+=head2 prepend_buffer - prepend something for output - usually headers
+
+  $oView->prepend_buffer(q[my string]);
+  $oView->prepend_buffer(@aStrings);
 
 =head2 output_end - For streamed output: flag no more output and flush buffer
 
