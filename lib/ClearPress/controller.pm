@@ -120,7 +120,7 @@ sub response_code {
   my ($self, $status) = @_;
 
   if($status) {
-carp qq[controller: replacing response_code $self->{response_code} with $status];
+#carp qq[controller: replacing response_code $self->{response_code} with $status];
     $self->{response_code} = $status;
   }
 
@@ -454,9 +454,9 @@ sub set_http_status {
     return;
   }
 
-  my $util = $self->util;
-  my $cgi  = $util->cgi;
-  my $r    = $cgi->r;
+  my $util    = $self->util;
+  my $cgi     = $util->cgi;
+  my $r       = $cgi->r;
   my $headers = $self->response_headers || {};
   my $status  = $self->response_code;
 
@@ -483,7 +483,7 @@ sub set_http_status {
   return 1;
 }
 
-sub handler { ## no critic (Complexity)
+sub handler {
   my ($self, $util) = @_;
   if(!ref $self) {
     $self = $self->new({util => $util});
@@ -531,6 +531,11 @@ sub handler { ## no critic (Complexity)
     }
 
     $viewobject->output_buffer($decorator->header());
+  } else {
+    #########
+    # undecorated responses still need to have HTTP response headers closed off
+    #
+    $viewobject->output_buffer("\n");
   }
 
   my $errstr;
@@ -753,7 +758,7 @@ sub dispatch {
     };
 
     if(!$modelobject) {
-      carp qq[No model];
+      carp q[no model];
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
       $self->errstr(qq[Failed to instantiate $entity model: $EVAL_ERROR]);
       return;
@@ -775,7 +780,7 @@ sub dispatch {
   };
 
   if(!$viewobject) {
-    carp qq[No view];
+    carp q[no view];
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
     $self->errstr(qq[Failed to instantiate $entity view: $EVAL_ERROR]);
     return;
@@ -872,6 +877,10 @@ $Revision: 470 $
  $oController->set_http_status();
 
  Based on view->response_code || controller->response_code
+
+=head2 handle_error - main request error response
+
+=head2 errstr - temporary storage for error string to pass through to error handler
 
 =head1 DIAGNOSTICS
 
