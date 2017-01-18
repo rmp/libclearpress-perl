@@ -24,7 +24,7 @@ use ClearPress::view::error;
 use CGI;
 use HTTP::Status qw(:constants :is);
 
-our $VERSION = q[475.1.5];
+our $VERSION = q[475.1.9];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',
@@ -516,6 +516,7 @@ sub handler {
   if(!$viewobject) {
 #    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
     $self->set_http_status(); # use response_code set in ->dispatch(). Who's responsible for setting headers?
+    print "\n" or croak qq[Error printing: $ERRNO]; # end headers - no viewobject to hang output_buffer/output_flush off
     return $self->handle_error();
   }
 
@@ -802,6 +803,7 @@ sub dispatch {
                                   });
     1;
   } or do {
+    carp qq[Failed to $viewclass->new: $EVAL_ERROR];
     # bail out
   };
 
