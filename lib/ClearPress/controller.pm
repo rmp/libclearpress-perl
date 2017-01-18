@@ -345,6 +345,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
 			  read => 'list',
 			 }->{$action} || $action_extended;
     }
+
     $aspect = $action_extended . ($aspect?"_$aspect":q[]);
   }
 
@@ -457,6 +458,7 @@ sub set_http_status {
   }
 
   if($self->{headers_sent}++) {
+    carp q[controller::set_http_status headers already sent];
     return;
   }
 
@@ -512,8 +514,8 @@ sub handler {
                                     id     => $id,
                                    });
   if(!$viewobject) {
-    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
-    $self->set_http_status();
+#    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
+    $self->set_http_status(); # use response_code set in ->dispatch(). Who's responsible for setting headers?
     return $self->handle_error();
   }
 
@@ -533,7 +535,7 @@ sub handler {
     my $content_type = $viewobject->content_type();
     my $charset      = $viewobject->charset();
     if($content_type =~ /text/smx && $charset =~ /utf-?8/smix) {
-      binmode STDOUT, q[:encoding(UTF-8)];
+      binmode STDOUT, q[:encoding(UTF-8)]; # is this useful? If so, should it be less conditional?
     }
 
     $viewobject->output_buffer($decorator->header());
@@ -554,11 +556,28 @@ sub handler {
 #    carp qq[controller::handler: rendered block output for $viewobject];
     1;
   } or do {
-#    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
+    #########
+    # 1. reset pending output_buffer (different view object)
+    # 2. set up error response w/headers
+    # 3. emit headers
+    # 4. hand off to error response handler
+    #
+    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
+    $viewobject->output_reset(); # reset headers on the original view
     $self->errstr($EVAL_ERROR);
-    $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    if($viewobject->response_code != HTTP_OK) {
+      $self->response_code($viewobject->response_code);
+    } else {
+      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    my ($junk, $headers) = $viewobject->response_code();
+    $self->response_headers({%{$headers || {}}}); # Content-Type comes from here
+
     $self->set_http_status(sub { my @args = @_; $viewobject->prepend_buffer(@args); });
-    return $self->handle_error();
+    $viewobject->output_buffer("\n"); # end headers
+    $viewobject->output_flush();      # emit output_buffer (headers) buffered in the original view
+    return $self->handle_error();     # hand off
   };
 
   #########
