@@ -175,7 +175,7 @@ sub response_code {
   my ($self, $status, $headers) = @_;
 
   if($status) {
-    carp qq[view: replacing response_code $self->{response_code} with $status];
+    carp qq[$self view::response_code: replacing response_code @{[$self->{response_code}||q[-]]} with $status];
     $self->{response_code} = $status;
 
     if($headers) {

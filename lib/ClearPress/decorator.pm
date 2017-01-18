@@ -85,7 +85,6 @@ sub new {
 sub header {
   my ($self) = @_;
 
-carp qq[decorator header:\n].$self->http_header;
   return $self->http_header() . $self->site_header();
 }
 

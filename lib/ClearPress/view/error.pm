@@ -88,7 +88,8 @@ sub render {
   my $tt      = $self->tt;
   my $content = q[];
   my $decor   = $self->decor;
-  carp qq[Handling error response]; use Data::Dumper; carp Dumper(caller());
+
+  carp qq[$self view::error: handling error response];
   if($aspect =~ /(?:ajax|xml|rss|atom)$/smx) {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
     $content = qq[<?xml version='1.0'?>\n<error>Error: $escaped</error>];
@@ -99,11 +100,19 @@ sub render {
 
   } else {
     my $escaped = $self->tt_filters->{xml_entity}->($errstr);
-    $content = sprintf q[<div id="main"><h2 class="error">%s</h2>%s<p class="error">Error: %s</p></div>], $CODEMAP->{$code} || q[An Error Occurred], $self->actions(), $escaped;
+    my $message = $CODEMAP->{$code||q[]} || q[An Error Occurred];
+    $content = sprintf <<'EOT', $message, $self->actions(), $escaped;
+<div id="main">
+  <h2 class="error">%s</h2>
+  %s
+  <p class="error">Error: %s</p>
+</div>
+EOT
   }
 
-  #$self->output_buffer($content);
-
+  #########
+  # render should return content for non-streamed responses
+  #
   return $content;
 }
 

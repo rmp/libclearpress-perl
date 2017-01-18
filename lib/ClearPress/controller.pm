@@ -1,13 +1,8 @@
 # -*- mode: cperl; tab-width: 8; indent-tabs-mode: nil; basic-offset: 2 -*-
 # vim:ts=8:sw=2:et:sta:sts=2
 #########
-# Author:        rmp
-# Maintainer:    $Author: zerojinx $
-# Created:       2007-03-28
-# Last Modified: $Date: 2015-09-21 10:19:13 +0100 (Mon, 21 Sep 2015) $
-# Id:            $Id: controller.pm 470 2015-09-21 09:19:13Z zerojinx $
-# Source:        $Source: /cvsroot/clearpress/clearpress/lib/ClearPress/controller.pm,v $
-# $HeadURL: svn+ssh://zerojinx@svn.code.sf.net/p/clearpress/code/trunk/lib/ClearPress/controller.pm $
+# Author:  rmp
+# Created: 2007-03-28
 #
 # method id action  aspect  result CRUD
 # =====================================
@@ -48,9 +43,6 @@ our $REST   = {
 	       list   => 'GET',
                null   => 'HEAD|TRACE'
 	      };
-
-our $EXPERIMENTAL_HEADERS = 0;
-
 
 sub accept_extensions {
   return [
@@ -457,11 +449,20 @@ sub session {
 
 sub set_http_status {
   my $self = shift;
+
+  if($self->{headers_sent}++) {
+    return;
+  }
+
   my $util = $self->util;
   my $cgi  = $util->cgi;
   my $r    = $cgi->r;
 
-  my $headers = $self->response_headers;
+  my $headers = $self->response_headers || {};
+  my $status  = $self->response_code;
+
+  carp qq[controlled::set_http_status: sending headers];
+  use Data::Dumper; carp Dumper({Status => $status, %{$headers}});
 
   if(!$r) {
     carp qq[set_http_status [cgi] printing headers];
@@ -507,9 +508,12 @@ sub handler { ## no critic (Complexity)
                                     id     => $id,
                                    });
   if(!$viewobject) {
+    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
+    $self->set_http_status();
     return $self->handle_error();
   }
 
+  carp qq[controller::handler: successful $viewobject];
   my $decor = $viewobject->decor(); # boolean
 
   #########
@@ -536,14 +540,15 @@ sub handler { ## no critic (Complexity)
     #########
     # view->render() may be streamed
     #
-carp qq[rendering block output for $viewobject];
+    carp qq[controller::handler: rendering block output for $viewobject];
     $viewobject->output_buffer($viewobject->render());
-carp qq[rendered block output for $viewobject];
+    carp qq[controller::handler: rendered block output for $viewobject];
     1;
   } or do {
-    carp qq[view->render failed: $EVAL_ERROR];
-    $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $self->errstr($EVAL_ERROR);
+    $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    $self->set_http_status();
     return $self->handle_error();
   };
 
@@ -551,7 +556,7 @@ carp qq[rendered block output for $viewobject];
   # handle special cases like redirect headers
   #
   my ($code, $headers) = $viewobject->response_code();
-carp qq[code=@{[$code||'undef']}];
+
   #########
   # copy response header state from view into self
   #
@@ -559,7 +564,7 @@ carp qq[code=@{[$code||'undef']}];
   $self->response_headers({%{$headers || {}}});
 
   my $bail_early = 0;
-carp qq[bail_early=$bail_early];
+  carp qq[controller::handler: bail_early=$bail_early];
   if($code && !is_success($code)) { # is_error | is_redirect
     $bail_early = 1;
   }
@@ -568,7 +573,7 @@ carp qq[bail_early=$bail_early];
   # emit http response headers based on self->response_code/response_headers
   #
   $self->set_http_status();
-carp qq[after set_http_status];
+  carp qq[controller::handler: after set_http_status];
   #########
   # bail out of response handler early (trigger subrequest if necessary)
   #
@@ -580,20 +585,20 @@ carp qq[after set_http_status];
   # re-test decor in case it's changed by render()
   #
   if($viewobject->decor()) {
-carp qq[decorated footer];
+    carp qq[controller::handler: decorated footer];
     #########
     # dump footer
     #
     $viewobject->output_buffer($decorator->footer());
   }
 
-carp qq[output_end];
+  carp qq[controller::handler: output_end];
   #########
   # flush everything left to client socket (via stdout)
   #
   $viewobject->output_end();
 
-carp qq[cleaning up];
+  carp qq[controller::handler: cleaning up];
   #########
   # save the session after the request has processed
   #
@@ -612,6 +617,7 @@ sub handle_error {
   my $util      = $self->util;
   my $decorator = $self->decorator();
   my $namespace = $self->namespace();
+  my ($action, $entity, $aspect, $id) = $self->process_request($util);
 
   # if running in mod_perl, main request serves a bad status header and errordocument is handled by a subrequest
   # if running in CGI, main request serves a bad status header and follows with errordocument content
@@ -624,16 +630,23 @@ sub handle_error {
   #########
   # but pass-through the errstr
   #
+  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
 #  $viewobject->output_finished(0);
 #  $viewobject->output_reset();
-  $self->set_http_status();
+
+  #########
+  # this has to run once, but what happens if it runs twice?
+  #
+#  $self->response_code(HTTP_OK);
+#  $self->set_http_status();
 
   if($util->cgi->r) {
     #########
     # mod-perl errordocument handled by subrequest
     #
+    carp qq[controller::handle_error: mod_perl error response];
     return;
   }
 
@@ -641,22 +654,28 @@ sub handle_error {
   # non-mod-perl errordocument handled by application internals
   #
   my $error_ns = sprintf q[%s::view::error], $namespace;
-  carp qq[Handling error with $error_ns];
+  carp qq[controller::handle_error: handling error with $error_ns];
 
   my $viewobject;
   eval {
-    $viewobject = $error_ns->new({util => $util});
+    $viewobject = $error_ns->new({
+                                  util   => $util,
+                                  action => $action,
+                                  aspect => $aspect,
+                                 });
     1;
   } or do {
     $viewobject = ClearPress::view::error->new({util => $util});
   };
 
-  $viewobject->output_buffer($decorator->header(), $viewobject->render(), $decorator->footer());
+  my $str = $decorator->header . $viewobject->render . $decorator->footer;
+  carp qq[controller::handle_error: error doc:\n$str\n];
+  $viewobject->output_buffer($str);
   $viewobject->output_end();
   $decorator->save_session();
   $util->cleanup();
 
-  return ;
+  return;
 }
 
 sub namespace {
@@ -859,8 +878,6 @@ $Revision: 470 $
 =head1 DIAGNOSTICS
 
 =head1 CONFIGURATION AND ENVIRONMENT
-
-Set $ClearPress::controller::EXPERIMENTAL_HEADERS = 1 to enable basic CGI response headers for various error states
 
 =head1 DEPENDENCIES
 
