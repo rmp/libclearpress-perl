@@ -134,7 +134,7 @@ sub response_headers {
     $self->{response_headers} = $headers;
   }
 
-  return $self->{response_headers};
+  return $self->{response_headers} || {};
 }
 
 sub packagespace {
@@ -465,7 +465,7 @@ sub set_http_status {
   my $util    = $self->util;
   my $cgi     = $util->cgi;
   my $r       = $cgi->r;
-  my $headers = $self->response_headers || {};
+  my $headers = $self->response_headers;
   my $status  = $self->response_code;
 
 #  use Data::Dumper; carp Dumper({Status => $status, %{$headers}});
@@ -517,7 +517,7 @@ sub handler {
 #    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
     $self->set_http_status(); # use response_code set in ->dispatch(). Who's responsible for setting headers?
     print "\n" or croak qq[Error printing: $ERRNO]; # end headers - no viewobject to hang output_buffer/output_flush off
-    return $self->handle_error();
+    return $self->handle_error(undef, 1);
   }
 
 #  carp qq[controller::handler: successful $viewobject];
@@ -555,6 +555,7 @@ sub handler {
 #    carp qq[controller::handler: rendering block output for $viewobject];
     $viewobject->output_buffer($viewobject->render());
 #    carp qq[controller::handler: rendered block output for $viewobject];
+1;
     1;
   } or do {
     #########
@@ -566,18 +567,19 @@ sub handler {
     carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $viewobject->output_reset(); # reset headers on the original view
     $self->errstr($EVAL_ERROR);
-    if($viewobject->response_code != HTTP_OK) {
-      $self->response_code($viewobject->response_code);
-    } else {
+    my $code = $viewobject->response_code;
+
+    if(!$code || $code == HTTP_OK) {
+#      $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    my ($junk, $headers) = $viewobject->response_code();
-    $self->response_headers({%{$headers || {}}}); # Content-Type comes from here
+#    my ($junk, $headers) = $viewobject->response_code();
+#    $self->response_headers({%{$headers}}); # Content-Type comes from here
 
-    $self->set_http_status(sub { my @args = @_; $viewobject->prepend_buffer(@args); });
-    $viewobject->output_buffer("\n"); # end headers
-    $viewobject->output_flush();      # emit output_buffer (headers) buffered in the original view
+#    $self->set_http_status(sub { my @args = @_; $viewobject->output_prepend(@args); });
+#    $viewobject->output_buffer("\n"); # end headers
+#    $viewobject->output_flush();      # emit output_buffer (headers) buffered in the original view
     return $self->handle_error();     # hand off
   };
 
@@ -590,23 +592,25 @@ sub handler {
   # copy response header state from view into self
   #
   $self->response_code($code);
-  $self->response_headers({%{$headers || {}}});
+  $self->response_headers({%{$headers}});
 
   my $bail_early = 0;
 #  carp qq[controller::handler: bail_early=$bail_early];
   if($code && !is_success($code)) { # is_error | is_redirect
+    $viewobject->output_reset();
     $bail_early = 1;
   }
 
   #########
   # emit http response headers based on self->response_code/response_headers
   #
-  $self->set_http_status(sub { my @args = @_; $viewobject->prepend_buffer(@args); });
+  $self->set_http_status(sub { my @args = @_; $viewobject->output_prepend(@args); });
 #  carp qq[controller::handler: after set_http_status];
   #########
   # bail out of response handler early (trigger subrequest if necessary)
   #
   if($bail_early) {
+    $viewobject->output_flush();
     return $self->handle_error();
   }
 
@@ -642,7 +646,7 @@ sub handler {
 }
 
 sub handle_error {
-  my ($self, $errstr) = @_;
+  my ($self, $errstr, $strip_headers) = @_;
   my $util      = $self->util;
   my $decorator = $self->decorator();
   my $namespace = $self->namespace();
@@ -662,20 +666,12 @@ sub handle_error {
 #  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
-#  $viewobject->output_finished(0);
-#  $viewobject->output_reset();
-
-  #########
-  # this has to run once, but what happens if it runs twice?
-  #
-#  $self->response_code(HTTP_OK);
-#  $self->set_http_status();
-
   if($util->cgi->r) {
     #########
     # mod-perl errordocument handled by subrequest
     #
-#    carp qq[controller::handle_error: mod_perl error response];
+#    carp qq[controller::handle_error: mod_perl error response. code=@{[$self->response_code]}];
+    $self->set_http_status();
     return;
   }
 
@@ -697,8 +693,20 @@ sub handle_error {
     $viewobject = ClearPress::view::error->new({util => $util});
   };
 
-  my $decor = $viewobject->decor();
-  my $str = ($decor ? $decorator->header : q[]) . $viewobject->render . ($decor ? $decorator->footer : q[]);
+  my $decor  = $viewobject->decor();
+  my $header = q[];
+  my $footer = q[];
+
+  if($viewobject->decor) {
+    $header = $decorator->header;
+    $footer = $decorator->footer;
+    if($strip_headers) {
+#      carp qq[controller::handle_error: stripping headers];
+      $header =~ s{.*?\n\n}{}smx;
+    }
+  }
+
+  my $str = $header . $viewobject->render . $footer;
 #  carp qq[controller::handle_error: error doc:\n$str\n];
   $viewobject->output_buffer($str);
   $viewobject->output_end();
@@ -763,6 +771,7 @@ sub dispatch {
   my $state = $self->is_valid_view($ref, $entity);
   if(!$state) {
     $self->response_code(HTTP_NOT_FOUND);
+    $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
     $self->errstr(qq[No such view ($entity). Is it in your config.ini?]);
     return;
   }
@@ -787,6 +796,7 @@ sub dispatch {
     if(!$modelobject) {
       carp q[no model];
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+      $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
       $self->errstr(qq[Failed to instantiate $entity model: $EVAL_ERROR]);
       return;
     }
@@ -810,6 +820,7 @@ sub dispatch {
   if(!$viewobject) {
     carp q[no view];
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+    $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
     $self->errstr(qq[Failed to instantiate $entity view: $EVAL_ERROR]);
     return;
   }
