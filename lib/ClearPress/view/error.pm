@@ -60,12 +60,32 @@ sub safe_errors {
   return 1;
 }
 
+sub init {
+  my $self = shift;
+  my $util = $self->util;
+  my $cgi  = $util->cgi;
+
+  $self->{errstr} = $cgi->unescape($cgi->param('errstr') || q[]);
+
+  return $self->SUPER::init();
+}
+
+sub errstr {
+  my ($self, $errstr) = @_;
+
+  if($errstr) {
+    $self->{errstr} = $errstr;
+  }
+
+  return $self->{errstr};
+}
+
 sub render {
   my $self   = shift;
   my $util   = $self->util;
   my $cgi    = $util->cgi;
   my $aspect = $self->aspect();
-  my $errstr = $cgi->unescape($cgi->param('errstr') || q[]);
+  my $errstr = $self->errstr;
   my $pi     = $ENV{PATH_INFO} || q[];
   my ($code) = $pi =~ m{(\d+)}smix; # mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
 
@@ -144,6 +164,10 @@ $LastChangedRevision: 470 $
   my $sErrorOutput = $oErrorView->render();
 
 =head2 safe_errors - boolean flag, default on - strip strings which look like filenames and line numbers
+
+=head2 init - unstash errstr
+
+=head2 errstr - errstr accessor
 
 =head1 DIAGNOSTICS
 
