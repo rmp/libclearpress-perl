@@ -107,6 +107,14 @@ sub http_header {
                    "Set-Cookie: $_";
                  } @cookies);
   return join "\n", @headers, "\n";
+
+# would like to do this, but need $viewobject not $self:
+#  $self->output_prepend(
+#                        qq[Content-type: text/html; charset=$charset\n],
+#                        (map { qq[Set-Cookie: $_\n] } @cookies),
+#                        "\n"
+#                       );
+#  return q[];
 }
 
 sub site_header {
