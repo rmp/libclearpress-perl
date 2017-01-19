@@ -771,7 +771,7 @@ sub dispatch {
   my $state = $self->is_valid_view($ref, $entity);
   if(!$state) {
     $self->response_code(HTTP_NOT_FOUND);
-    $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
+    $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
     $self->errstr(qq[No such view ($entity). Is it in your config.ini?]);
     return;
   }
@@ -796,7 +796,7 @@ sub dispatch {
     if(!$modelobject) {
       carp q[no model];
       $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
+      $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
       $self->errstr(qq[Failed to instantiate $entity model: $EVAL_ERROR]);
       return;
     }
@@ -820,7 +820,7 @@ sub dispatch {
   if(!$viewobject) {
     carp q[no view];
     $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-    $self->response_headers({'Content-Type', 'text/html'}); # no option but to set this
+    $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
     $self->errstr(qq[Failed to instantiate $entity view: $EVAL_ERROR]);
     return;
   }
