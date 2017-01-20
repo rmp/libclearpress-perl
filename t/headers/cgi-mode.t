@@ -40,7 +40,7 @@ my $runner = sub {
 	      [ '',     'text/html',        sub { my $arg=shift; return $arg;                                                      } ], # plain # <p class="error">
 	      [ '.js',  'application/json', sub { my $arg=shift; return JSON->new->decode($arg)->{error};                          } ], # json
 	      [ '.csv', 'application/csv',  sub { my $arg=shift; return [split /[\r\n]+/smix, $arg]->[0];                          } ], # csv
-	      [ '.xml', 'text/xml',         sub { my $arg=shift; return XML::XPath->new(content=>$arg)->find('/error')->as_string; } ], # xml
+	      [ '.xml', 'text/xml',         sub { my $arg=shift; return XML::XPath->new(xml=>$arg)->find('/error'); } ], # xml
 	     ];
 
   for my $set (@{$sets}) {
