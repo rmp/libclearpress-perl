@@ -23,6 +23,7 @@ use ClearPress::decorator;
 use ClearPress::view::error;
 use CGI;
 use HTTP::Status qw(:constants :is);
+use HTTP::Headers;
 
 our $VERSION = q[475.1.9];
 our $CRUD    = {
@@ -482,7 +483,7 @@ carp qq[NO VIEW: @{[$headers->as_string]}];
   $viewobject->decorator($decorator);
 
   my $charset      = $viewobject->charset();
-  $charset         = $charset ? q[;charset=$charset] : q[];
+  $charset         = $charset ? qq[;charset=$charset] : q[];
   my $content_type = sprintf q[%s%s], $viewobject->content_type(), $charset;
 
   #########
@@ -589,7 +590,7 @@ sub handle_error {
 #  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
-  print $headers->as_string(), "\n";
+  print $headers->as_string(), "\n" or croak qq[Error printing: $ERRNO];
 
   if($util->cgi->r) {
     #########

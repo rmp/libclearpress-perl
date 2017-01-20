@@ -99,7 +99,7 @@ sub cookie {
 }
 
 sub http_header {
-  carp qq[ClearPress::decorator::http_header is DEPRECATED];
+  carp q[ClearPress::decorator::http_header is DEPRECATED];
 
   return q[]; # don't emit anything at this point
 }
