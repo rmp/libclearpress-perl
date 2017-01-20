@@ -60,6 +60,7 @@ sub accept_extensions {
 	  {'.ical' => q[_ical]},
 	  {'.txt'  => q[_txt]},
 	  {'.xls'  => q[_xls]},
+	  {'.csv'  => q[_csv]},
 	  {'.ajax' => q[_ajax]},
 	 ];
 }
@@ -439,42 +440,39 @@ sub handler {
   my $decorator = $self->decorator($util, $headers);
   my $namespace = $self->namespace($util);
 
+  $headers->header('Status', HTTP_OK);
+
+  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
+
+  my $params = {
+                util    => $util,
+                entity  => $entity,
+                aspect  => $aspect,
+                action  => $action,
+                id      => $id,
+                headers => $headers,
+               };
   #########
   # initial header block
   #
-  $headers->header('Content-Type', "text/html"); # don't forget to add charset
-  $headers->header('Status',       HTTP_OK);
+  $headers->header('Content-Type', ClearPress::view->new($params)->content_type || 'text/html'); # don't forget to add charset
 
   for my $cookie ($decorator->cookie) {
     $self->{headers}->push_header('Set-Cookie', $_);
   }
 
-  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
-
   $util->username($decorator->username());
   $util->session($self->session($util));
 
-  my $viewobject = $self->dispatch({
-                                    util    => $util,
-                                    entity  => $entity,
-                                    aspect  => $aspect,
-                                    action  => $action,
-                                    id      => $id,
-                                    headers => $headers,
-                                   });
+  my $viewobject = $self->dispatch($params);
   if(!$viewobject) {
     #########
     # Without a view object here we can't determine the correct
     # content-type for a response which has completely failed.
     # 
-    # Need to force emission of response headers here. How does this interact with mod_perl?
-    #
-    print $headers->as_string, "\n" or croak qq[Error printing: $ERRNO];
-carp qq[NO VIEW: @{[$headers->as_string]}];
     return $self->handle_error(undef, $headers);
   }
 
-#  carp qq[controller::handler: successful $viewobject];
   my $decor = $viewobject->decor(); # boolean
 
   #########
@@ -500,11 +498,6 @@ carp qq[NO VIEW: @{[$headers->as_string]}];
     # decorated header
     #
     $viewobject->output_buffer($decorator->header());
-  } else {
-    #########
-    # undecorated responses still need to have HTTP response headers closed off
-    #
-#    $viewobject->output_buffer("\n");
   }
 
   my $errstr;
@@ -512,10 +505,7 @@ carp qq[NO VIEW: @{[$headers->as_string]}];
     #########
     # view->render() may be streamed
     #
-#    carp qq[controller::handler: rendering block output for $viewobject];
     $viewobject->output_buffer($viewobject->render());
-#    carp qq[controller::handler: rendered block output for $viewobject];
-1;
     1;
   } or do {
     #########
@@ -529,7 +519,7 @@ carp qq[NO VIEW: @{[$headers->as_string]}];
     $self->errstr($EVAL_ERROR);
 
     my $code = $headers->header('Status');
-carp qq[code was $code];
+
     if(!$code || $code == HTTP_OK) {
       $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
     }
@@ -541,8 +531,6 @@ carp qq[code was $code];
   # prepend all response headers (and header block termination)
   #
   $viewobject->output_prepend($headers->as_string, "\n");
-carp qq[PREPEND @{[$headers->as_string]}\n];
-  # any special case status code handling? bail out early?
 
   #########
   # re-test decor in case it's changed by render()
@@ -587,7 +575,6 @@ sub handle_error {
   #########
   # but pass-through the errstr
   #
-#  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
   print $headers->as_string(), "\n" or croak qq[Error printing: $ERRNO];
@@ -603,14 +590,13 @@ sub handle_error {
   # non-mod-perl errordocument handled by application internals
   #
   my $error_ns = sprintf q[%s::view::error], $namespace;
-#  carp qq[controller::handle_error: handling error with $error_ns];
+  my $params   = {
+                  util    => $util,
+                  action  => $action,
+                  aspect  => $aspect,
+                  headers => $headers, # same header block as original response? hmm.
+                 };
 
-  my $params = {
-                util    => $util,
-                action  => $action,
-                aspect  => $aspect,
-                headers => $headers, # same header block as original response? hmm.
-               };
   my $viewobject;
   eval {
     $viewobject = $error_ns->new($params);
@@ -629,7 +615,7 @@ sub handle_error {
   }
 
   my $str = $header . $viewobject->render . $footer;
-#  carp qq[controller::handle_error: error doc:\n$str\n];
+
   $viewobject->output_buffer($str);
   $viewobject->output_end();
   $decorator->save_session();

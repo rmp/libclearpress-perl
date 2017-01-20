@@ -33,7 +33,7 @@ sub new { ## no critic (Complexity)
   my ($class, $self)    = @_;
   $self               ||= {};
   bless $self, $class;
-carp qq[$class -> new with headers=$self->{headers}];
+
   my $util                    = $self->util;
   my $username                = $util ? $util->username : q[];
   $self->{requestor_username} = $username;
@@ -728,81 +728,39 @@ sub redirect {
 }
 
 # todo: auto-create these <action>_<format> style accessors
-
-sub list_xml {
-  my $self = shift;
-  return $self->list;
+BEGIN {
+  no strict 'refs';
+  for my $ext (qw(xml ajax json csv)) {
+    for my $method (qw(create list read update delete)) {
+      my $ns = sprintf q[%s_%s], $method, $ext;
+      *{$ns} = sub { my $self = shift; return $self->$method; };
+    }
+  }
 }
 
-sub read_xml {
-  my $self = shift;
-  return $self->read;
-}
+#sub list_xml    { my $self = shift; return $self->list;   }
+#sub read_xml    { my $self = shift; return $self->read;   }
+#sub create_xml  { my $self = shift; return $self->create; }
+#sub update_xml  { my $self = shift; return $self->update; }
+#sub delete_xml  { my $self = shift; return $self->delete; }
 
-sub create_xml {
-  my $self = shift;
-  return $self->create;
-}
+#sub list_ajax   { my $self = shift; return $self->list;   }
+#sub read_ajax   { my $self = shift; return $self->read;   }
+#sub create_ajax { my $self = shift; return $self->create; }
+#sub update_ajax { my $self = shift; return $self->update; }
+#sub delete_ajax { my $self = shift; return $self->delete; }
 
-sub update_xml {
-  my $self = shift;
-  return $self->update;
-}
+#sub list_json   { my $self = shift; return $self->list;   }
+#sub read_json   { my $self = shift; return $self->read;   }
+#sub create_json { my $self = shift; return $self->create; }
+#sub update_json { my $self = shift; return $self->update; }
+#sub delete_json { my $self = shift; return $self->delete; }
 
-sub delete_xml {
-  my $self = shift;
-  return $self->delete;
-}
-
-sub list_ajax {
-  my $self = shift;
-  return $self->list;
-}
-
-sub read_ajax {
-  my $self = shift;
-  return $self->read;
-}
-
-sub create_ajax {
-  my $self = shift;
-  return $self->create;
-}
-
-sub update_ajax {
-  my $self = shift;
-  return $self->update;
-}
-
-sub delete_ajax {
-  my $self = shift;
-  return $self->delete;
-}
-
-sub list_json {
-  my $self = shift;
-  return $self->list;
-}
-
-sub read_json {
-  my $self = shift;
-  return $self->read;
-}
-
-sub create_json {
-  my $self = shift;
-  return $self->create;
-}
-
-sub update_json {
-  my $self = shift;
-  return $self->update;
-}
-
-sub delete_json {
-  my $self = shift;
-  return $self->delete;
-}
+#sub list_csv   { my $self = shift; return $self->list;   }
+#sub read_csv   { my $self = shift; return $self->read;   }
+#sub create_csv { my $self = shift; return $self->create; }
+#sub update_csv { my $self = shift; return $self->update; }
+#sub delete_csv { my $self = shift; return $self->delete; }
 
 1;
 __END__

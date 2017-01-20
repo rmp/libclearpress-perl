@@ -1,3 +1,5 @@
+# -*- mode: cperl; tab-width: 8; indent-tabs-mode: nil; basic-offset: 2 -*-
+# vim:ts=8:sw=2:et:sta:sts=2
 use strict;
 use warnings;
 use Test::More tests => 84;
@@ -37,9 +39,9 @@ my $runner = sub {
 
 {
   my $sets = [
-	      [ '',     'text/html',        sub { my $arg=shift; return $arg;                                                      } ], # plain # <p class="error">
-	      [ '.js',  'application/json', sub { my $arg=shift; return JSON->new->decode($arg)->{error};                          } ], # json
-	      [ '.csv', 'application/csv',  sub { my $arg=shift; return [split /[\r\n]+/smix, $arg]->[0];                          } ], # csv
+	      [ '',     'text/html',        sub { my $arg=shift; return $arg;                                       } ], # plain # <p class="error">
+	      [ '.js',  'application/json', sub { my $arg=shift; return JSON->new->decode($arg)->{error};           } ], # json
+	      [ '.csv', 'text/csv',         sub { my $arg=shift; return [split /[\r\n]+/smix, $arg]->[0];           } ], # csv
 	      [ '.xml', 'text/xml',         sub { my $arg=shift; return XML::XPath->new(xml=>$arg)->find('/error'); } ], # xml
 	     ];
 
@@ -86,7 +88,7 @@ my $runner = sub {
 	eval {
 	  $str = $extraction->($content);
 	} or do {
-	  diag("failed to extract content: $EVAL_ERROR");
+	  diag("failed to extract content: $EVAL_ERROR", "headers=".$headers->as_string, "content=".$content);
 	};
 	like($str, qr{$errstr}smx, "$method $script_name$path_info content matches '$errstr'");
       }
