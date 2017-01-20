@@ -727,7 +727,9 @@ sub redirect {
   return 1;
 }
 
-# todo: auto-create these <action>_<format> style accessors
+#########
+# automated method generation for core CRUD+ view methods
+#
 BEGIN {
   no strict 'refs';
   for my $ext (qw(xml ajax json csv)) {
@@ -737,30 +739,6 @@ BEGIN {
     }
   }
 }
-
-#sub list_xml    { my $self = shift; return $self->list;   }
-#sub read_xml    { my $self = shift; return $self->read;   }
-#sub create_xml  { my $self = shift; return $self->create; }
-#sub update_xml  { my $self = shift; return $self->update; }
-#sub delete_xml  { my $self = shift; return $self->delete; }
-
-#sub list_ajax   { my $self = shift; return $self->list;   }
-#sub read_ajax   { my $self = shift; return $self->read;   }
-#sub create_ajax { my $self = shift; return $self->create; }
-#sub update_ajax { my $self = shift; return $self->update; }
-#sub delete_ajax { my $self = shift; return $self->delete; }
-
-#sub list_json   { my $self = shift; return $self->list;   }
-#sub read_json   { my $self = shift; return $self->read;   }
-#sub create_json { my $self = shift; return $self->create; }
-#sub update_json { my $self = shift; return $self->update; }
-#sub delete_json { my $self = shift; return $self->delete; }
-
-#sub list_csv   { my $self = shift; return $self->list;   }
-#sub read_csv   { my $self = shift; return $self->read;   }
-#sub create_csv { my $self = shift; return $self->create; }
-#sub update_csv { my $self = shift; return $self->update; }
-#sub delete_csv { my $self = shift; return $self->delete; }
 
 1;
 __END__
