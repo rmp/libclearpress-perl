@@ -146,10 +146,11 @@ sub request_test {
 		QUERY_STRING   => $t->[2],
 		%{$t->[3]},
 	       );
-  my $ctrl = $CTRL->new({util => $util});
-  my $ref  = [];
+  my $ctrl    = $CTRL->new({util => $util});
+  my $headers = HTTP::Headers->new;
+  my $ref     = [];
   eval {
-    $ref = [$ctrl->process_request($util)];
+    $ref = [$ctrl->process_request($headers)];
 
   } or do {
     diag($EVAL_ERROR);
@@ -200,10 +201,11 @@ for my $b (@{$B}) {
 		QUERY_STRING   => $b->[2],
 		%{$b->[3]},
 	       );
-  my $ctrl = $CTRL->new({util => $util});
-  my $ref  = [];
+  my $ctrl    = $CTRL->new({util => $util});
+  my $headers = HTTP::Headers->new;
+  my $ref     = [];
   eval {
-    $ref = [$ctrl->process_request($util)];
+    $ref = [$ctrl->process_request($headers)];
   };
 
   if(scalar @{$ref}) {

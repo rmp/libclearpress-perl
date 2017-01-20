@@ -329,19 +329,19 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
   #
   my ($type) = $aspect =~ /^([^_]+)/smx; # read|list|add|edit|create|update|delete
   if($method !~ /^$REST->{$type}$/smx) {
-    $headers->('Status', HTTP_BAD_REQUEST);
+    $headers->header('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
   }
 
   if(!$id &&
      $aspect =~ /^(?:delete|update|edit|read)/smx) {
-    $headers->('Status', HTTP_BAD_REQUEST);
+    $headers->header('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. Cannot $aspect without an id];
   }
 
   if($id &&
      $aspect =~ /^(?:create|add|list)/smx) {
-    $headers->('Status', HTTP_BAD_REQUEST);
+    $headers->header('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. Cannot $aspect with an id];
   }
 
@@ -442,7 +442,14 @@ sub handler {
 
   $headers->header('Status', HTTP_OK);
 
-  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
+  my ($action, $entity, $aspect, $id, $process_request_error);
+  eval {
+    ($action, $entity, $aspect, $id) = $self->process_request($headers);
+    1;
+  } or do {
+    carp qq[CAUGHT $EVAL_ERROR];
+    $process_request_error = $EVAL_ERROR;
+  };
 
   my $params = {
                 util    => $util,
@@ -461,17 +468,23 @@ sub handler {
     $self->{headers}->push_header('Set-Cookie', $_);
   }
 
+  if($process_request_error) {
+    #########
+    # deferred error handling
+    #
+    return $self->handle_error($process_request_error, $headers);
+  }
+
   $util->username($decorator->username());
   $util->session($self->session($util));
 
-  my $viewobject = $self->dispatch($params);
-  if(!$viewobject) {
-    #########
-    # Without a view object here we can't determine the correct
-    # content-type for a response which has completely failed.
-    # 
-    return $self->handle_error(undef, $headers);
-  }
+  my $viewobject;
+  eval {
+    $viewobject = $self->dispatch($params);
+    1;
+  } or do {
+    return $self->handle_error($EVAL_ERROR, $headers);
+  };
 
   my $decor = $viewobject->decor(); # boolean
 
@@ -680,8 +693,7 @@ sub dispatch {
   my $state = $self->is_valid_view($ref, $entity);
   if(!$state) {
     $headers->header('Status', HTTP_NOT_FOUND);
-    $self->errstr(qq[No such view ($entity). Is it in your config.ini?]);
-    return;
+    croak qq[No such view ($entity). Is it in your config.ini?];
   }
 
   my $entity_name = $entity;
@@ -691,22 +703,17 @@ sub dispatch {
   if($entity ne 'error') {
     my $modelclass = $self->packagespace('model', $entity, $util);
     eval {
-      my $modelpk    = $modelclass->primary_key();
-      $modelobject   = $modelclass->new({
-                                         util => $util,
-                                         $modelpk?($modelpk => $id):(),
-                                        });
+      my $modelpk  = $modelclass->primary_key();
+      $modelobject = $modelclass->new({
+                                       util => $util,
+                                       $modelpk?($modelpk => $id):(),
+                                      });
       1;
     } or do {
       # bail out
-    };
-
-    if(!$modelobject) {
-      carp q[no model];
       $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
-      $self->errstr(qq[Failed to instantiate $entity model: $EVAL_ERROR]);
-      return;
-    }
+      croak qq[Failed to instantiate $entity model: $EVAL_ERROR];
+    };
   }
 
   eval {
@@ -721,16 +728,9 @@ sub dispatch {
                                   });
     1;
   } or do {
-    carp qq[Failed to $viewclass->new: $EVAL_ERROR];
-    # bail out
-  };
-
-  if(!$viewobject) {
-    carp q[no view];
     $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
-    $self->errstr(qq[Failed to instantiate $entity view: $EVAL_ERROR]);
-    return;
-  }
+    croak qq[Failed to instantiate $entity view: $EVAL_ERROR];
+  };
 
   return $viewobject;
 }

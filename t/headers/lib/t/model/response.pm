@@ -6,7 +6,7 @@ use base qw(ClearPress::model);
 __PACKAGE__->mk_accessors(fields());
 
 sub fields {
-  return qw(code);
+  return qw(code name);
 }
 
 1;

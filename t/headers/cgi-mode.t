@@ -2,24 +2,33 @@
 # vim:ts=8:sw=2:et:sta:sts=2
 use strict;
 use warnings;
-use Test::More tests => 84;
+use Test::More tests => 160;
 use HTTP::Headers;
 use HTTP::Status qw(:constants);
 use IO::Capture::Stderr;
 use JSON;
 use XML::XPath;
 use English qw(-no_match_vars);
+use Carp;
+
 use lib qw(t/headers//lib t/lib);
 use t::request;
-
 use t::model::response;
 use t::view::response;
 
+#########
+# database setup
+#
+no warnings qw(redefine once);
+local $ENV{dev} = 'live';
+unlink 't/headers/data/headers.sql3';
+local *ClearPress::util::data_path = sub { return 't/headers/data'; };
+my $dbh = ClearPress::util->new->dbh;
+$dbh->do(q[create table response (code int primary key, name char(32))]) or croak qq[could not create table];
+$dbh->commit();
+
 my $runner = sub {
   my ($headers_ref, $content_ref, $config) = @_;
-
-  no warnings qw(redefine once);
-  local *ClearPress::util::data_path = sub { return 't/headers/data'; };
 
   my $response = t::request->new($config);
 
@@ -45,21 +54,33 @@ my $runner = sub {
 	      [ '.xml', 'text/xml',         sub { my $arg=shift; return XML::XPath->new(xml=>$arg)->find('/error'); } ], # xml
 	     ];
 
+  my $tests = [
+	       ['/t', '/no_config',    'GET', '', HTTP_NOT_FOUND,             'No such view (no_config)', 'no config'],
+	       ['/t', '/no_model',     'GET', '', HTTP_INTERNAL_SERVER_ERROR, 'Failed to instantiate no_model model', 'no model'],
+	       ['/t', '/response/200', 'GET', '', HTTP_OK,                    '', '200 response'], # extractors look for error blocks, so can't check "code=200" here
+	       ['/t', '/response/301', 'GET', '', HTTP_MOVED_PERMANENTLY,     '', '301 redirect'],
+	       ['/t', '/response/302', 'GET', '', HTTP_FOUND,                 '', '302 moved'],
+	       ['/t', '/response/403', 'GET', '', HTTP_FORBIDDEN,             '', '403 forbidden'],
+	       ['/t', '/response/404', 'GET', '', HTTP_NOT_FOUND,             '', '404 not found'],
+	       ['/t', '/response/500', 'GET', '', HTTP_INTERNAL_SERVER_ERROR, '', '500 error'],
+	       ['/t', '/response/999', 'GET', '', HTTP_INTERNAL_SERVER_ERROR, 'Application Error', '999 failure'],
+
+	       ['/t', '/no_config',    'POST', '', HTTP_NOT_FOUND,             '', 'no config'],
+	       ['/t', '/no_model',     'POST', '', HTTP_INTERNAL_SERVER_ERROR,           '', 'no model'],
+	       ['/t', '/response/200', 'POST', '', HTTP_OK,                    '', '200 response'], # extractors look for error blocks, so can't check "code=200" here
+	       ['/t', '/response/301', 'POST', '', HTTP_MOVED_PERMANENTLY,     '', '301 redirect'],
+	       ['/t', '/response/302', 'POST', '', HTTP_FOUND,                 '', '302 moved'],
+	       ['/t', '/response/403', 'POST', '', HTTP_FORBIDDEN,             '', '403 forbidden'],
+	       ['/t', '/response/404', 'POST', '', HTTP_NOT_FOUND,             '', '404 not found'],
+	       ['/t', '/response/500', 'POST', '', HTTP_INTERNAL_SERVER_ERROR, '', '500 error'],
+	       ['/t', '/response/999', 'POST', '', HTTP_INTERNAL_SERVER_ERROR, 'Application Error', '999 failure'], # update non-existent entity
+	      ];
+
   for my $set (@{$sets}) {
     my ($extension, $content_type, $extraction) = @{$set};
-    my $tests = [
-		 ['/t', '/no_config',    'GET', '', HTTP_NOT_FOUND,             'No such view (no_config)', 'no config'],
-		 ['/t', '/no_model',     'GET', '', HTTP_INTERNAL_SERVER_ERROR, 'Failed to instantiate no_model model', 'no model'],
-		 ['/t', '/response/200', 'GET', '', HTTP_OK,                    '', '200 response'], # extractors look for error blocks, so can't check "code=200" here
-		 ['/t', '/response/301', 'GET', '', HTTP_MOVED_PERMANENTLY,     '', '301 redirect'],
-		 ['/t', '/response/302', 'GET', '', HTTP_FOUND,                 '', '302 moved'],
-		 ['/t', '/response/403', 'GET', '', HTTP_FORBIDDEN,             '', '403 forbidden'],
-		 ['/t', '/response/404', 'GET', '', HTTP_NOT_FOUND,             '', '404 not found'],
-		 ['/t', '/response/500', 'GET', '', HTTP_INTERNAL_SERVER_ERROR, '', '500 error'],
-		 ['/t', '/response/999', 'GET', '', HTTP_INTERNAL_SERVER_ERROR, 'Application Error', '999 failure'],
-		];
 
     for my $t (@{$tests}) {
+
       my ($script_name, $path_info, $method, $username, $status, $errstr, $msg) = @{$t};
       $path_info .= $extension;
 
@@ -72,6 +93,9 @@ my $runner = sub {
 		 PATH_INFO      => $path_info,
 		 REQUEST_METHOD => $method,
 		 username       => $username,
+		 cgi_params     => {
+				    name => 'value',
+				   },
 		});
       $cap->stop;
 
@@ -87,12 +111,17 @@ my $runner = sub {
 	my $str;
 	eval {
 	  $str = $extraction->($content);
+	  1;
+
 	} or do {
 	  diag("failed to extract content: $EVAL_ERROR", "headers=".$headers->as_string, "content=".$content);
 	};
+
 	like($str, qr{$errstr}smx, "$method $script_name$path_info content matches '$errstr'");
       }
 
+      diag $content;
+#      diag $cap->read();
 #      diag "HEADERS=".$headers->as_string;
     }
   }
