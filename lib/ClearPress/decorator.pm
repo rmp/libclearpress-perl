@@ -20,10 +20,10 @@ use Carp;
 our $VERSION = q[475.1.9];
 our $DEFAULTS = {
 		 'meta_content_type' => 'text/html',
-		 'meta_version'      => '0.1',
+		 'meta_version'      => '0.2',
 		 'meta_description'  => q[],
-		 'meta_author'       => q$Author: zerojinx $,
-		 'meta_keywords'     => q[clearpress],
+		 'meta_author'       => q[],
+		 'meta_keywords'     => q[],
 		 'username'          => q[],
 		 'charset'           => q[iso8859-1],
 		};
@@ -43,7 +43,7 @@ sub fields {
   return qw(title stylesheet style jsfile script atom rss
             meta_keywords meta_description meta_author meta_version
             meta_refresh meta_cookie meta_content_type meta_expires
-            onload onunload onresize username charset);
+            onload onunload onresize username charset headers);
 }
 
 sub get {
@@ -85,7 +85,7 @@ sub new {
 sub header {
   my ($self) = @_;
 
-  return $self->http_header() . $self->site_header();
+  return $self->site_header();
 }
 
 sub cookie {
@@ -99,22 +99,9 @@ sub cookie {
 }
 
 sub http_header {
-  my $self    = shift;
-  my @cookies = grep { $_ } ($self->cookie());
-  my $charset = $self->charset;
-  my @headers = (qq[Content-type: text/html; charset=$charset],
-                 map {
-                   "Set-Cookie: $_";
-                 } @cookies);
-  return join "\n", @headers, "\n";
+  carp qq[ClearPress::decorator::http_header is DEPRECATED];
 
-# would like to do this, but need $viewobject not $self:
-#  $self->output_prepend(
-#                        qq[Content-type: text/html; charset=$charset\n],
-#                        (map { qq[Set-Cookie: $_\n] } @cookies),
-#                        "\n"
-#                       );
-#  return q[];
+  return q[]; # don't emit anything at this point
 }
 
 sub site_header {

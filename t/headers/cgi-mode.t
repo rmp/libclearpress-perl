@@ -6,6 +6,7 @@ use HTTP::Status qw(:constants);
 use IO::Capture::Stderr;
 use JSON;
 use XML::XPath;
+use English qw(-no_match_vars);
 use lib qw(t/headers//lib t/lib);
 use t::request;
 
@@ -72,7 +73,7 @@ my $runner = sub {
 		});
       $cap->stop;
 
-      my $ct_header = $headers->header('Content-Type');
+      my $ct_header = $headers->header('Content-Type') || q[];
       my ($charset) = $ct_header =~ m{\s*;\s*charset\s*=\S*(.*)$}smix;
       $ct_header    =~ s{\s*;\s*charset\s*=\S*.*$}{}smix;
 
@@ -80,15 +81,17 @@ my $runner = sub {
       is($ct_header,                 $content_type, "$method $script_name$path_info content_type $content_type [$msg]");
 
       if($errstr) {
+	$errstr =~ s{([ ()])}{\[$1\]}smxg;
 	my $str;
 	eval {
 	  $str = $extraction->($content);
+	} or do {
+	  diag("failed to extract content: $EVAL_ERROR");
 	};
-	like($str, qr{$errstr}sm, "$method $script_name$path_info content matches '$errstr'");
+	like($str, qr{$errstr}smx, "$method $script_name$path_info content matches '$errstr'");
       }
 
 #      diag "HEADERS=".$headers->as_string;
-      diag "CONTENT=$content";
     }
   }
 }

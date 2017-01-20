@@ -94,13 +94,6 @@ sub new {
     carp qq[Failed per-request rollback on fresh database handle: $EVAL_ERROR];
   };
 
-  if(!$self->{response_code}) {
-    #########
-    # set an expected default http response code
-    #
-    $self->{response_code} = HTTP_OK;
-  }
-
   return $self;
 }
 
@@ -114,27 +107,6 @@ sub util {
     $self->{util} = $util;
   }
   return $self->{util};
-}
-
-sub response_code {
-  my ($self, $status) = @_;
-
-  if($status) {
-#carp qq[controller: replacing response_code $self->{response_code} with $status];
-    $self->{response_code} = $status;
-  }
-
-  return $self->{response_code};
-}
-
-sub response_headers {
-  my ($self, $headers) = @_;
-
-  if($headers) {
-    $self->{response_headers} = $headers;
-  }
-
-  return $self->{response_headers} || {};
 }
 
 sub packagespace {
@@ -163,7 +135,8 @@ sub packagespace {
 }
 
 sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
-  my ($self, $util) = @_;
+  my ($self, $headers) = @_;
+  my $util          = $self->util;
   my $method        = $ENV{REQUEST_METHOD} || 'GET';
   my $action        = $CRUD->{uc $method};
   my $pi            = $ENV{PATH_INFO}      || q[];
@@ -354,19 +327,19 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
   #
   my ($type) = $aspect =~ /^([^_]+)/smx; # read|list|add|edit|create|update|delete
   if($method !~ /^$REST->{$type}$/smx) {
-    $self->response_code(HTTP_BAD_REQUEST);
+    $headers->('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. $aspect ($type) is not a $CRUD->{$method} method];
   }
 
   if(!$id &&
      $aspect =~ /^(?:delete|update|edit|read)/smx) {
-    $self->response_code(HTTP_BAD_REQUEST);
+    $headers->('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. Cannot $aspect without an id];
   }
 
   if($id &&
      $aspect =~ /^(?:create|add|list)/smx) {
-    $self->response_code(HTTP_BAD_REQUEST);
+    $headers->('Status', HTTP_BAD_REQUEST);
     croak qq[Bad request. Cannot $aspect with an id];
   }
 
@@ -411,7 +384,7 @@ sub _process_request_headers {
 }
 
 sub decorator {
-  my ($self, $util) = @_;
+  my ($self, $util, $headers) = @_;
 
   if(!$self->{decorator}) {
     my $appname   = $util->config->val('application', 'name') || 'Application';
@@ -420,11 +393,14 @@ sub decorator {
     my $config    = $util->config;
     my $decor;
 
+    my $ref = {
+               headers => $headers,
+              };
     eval {
-      $decor = $decorpkg->new();
+      $decor = $decorpkg->new($ref);
       1;
     } or do {
-      $decor = ClearPress::decorator->new();
+      $decor = ClearPress::decorator->new($ref);
     };
 
     for my $field ($decor->fields) {
@@ -435,7 +411,12 @@ sub decorator {
       $decor->title($config->val('application', 'name') || 'ClearPress Application');
     }
 
-    $self->{decorator} = $decor;
+    #########
+    # only cache decorator when $headers is passed
+    #
+    if($headers) {
+      $self->{decorator} = $decor;
+    }
   }
 
   return $self->{decorator};
@@ -443,52 +424,7 @@ sub decorator {
 
 sub session {
   my ($self, $util) = @_;
-  my $decorator = $self->decorator($util || $self->util());
-  return $decorator->session() || {};
-}
-
-sub set_http_status {
-  my ($self, $cb) = @_;
-
-  if(!$cb) {
-    $cb = sub {
-      my @args = @_;
-      print @args or croak qq[Error printing: $ERRNO];
-    };
-  }
-
-  if($self->{headers_sent}++) {
-    carp q[controller::set_http_status headers already sent];
-    return;
-  }
-
-  my $util    = $self->util;
-  my $cgi     = $util->cgi;
-  my $r       = $cgi->r;
-  my $headers = $self->response_headers;
-  my $status  = $self->response_code;
-
-#  use Data::Dumper; carp Dumper({Status => $status, %{$headers}});
-
-  if(!$cgi->r) {
-#    carp qq[set_http_status [cgi] printing headers];
-    $cb->("Status: @{[$self->response_code]}\n");
-
-    while(my ($k, $v) = each %{$headers}) {
-      $cb->("$k: $v\n");
-    }
-
-    return 1;
-  }
-
-#  carp qq[set_http_status [mp] printing headers];
-  $r->status($self->response_code);
-  while(my ($k, $v) = each %{$headers}) {
-    $r->headers_out->set($k => $v);
-  }
-  $r->rflush();
-
-  return 1;
+  return $self->decorator($util || $self->util())->session() || {};
 }
 
 sub handler {
@@ -497,27 +433,44 @@ sub handler {
     $self = $self->new({util => $util});
   }
 
-  my $cgi           = $util->cgi();
-  my $decorator     = $self->decorator($util);
-  my $namespace     = $self->namespace($util);
+  my $headers   = HTTP::Headers->new();
+  my $cgi       = $util->cgi();
+  my $decorator = $self->decorator($util, $headers);
+  my $namespace = $self->namespace($util);
 
-  my ($action, $entity, $aspect, $id) = $self->process_request($util);
+  #########
+  # initial header block
+  #
+  $headers->header('Content-Type', "text/html"); # don't forget to add charset
+  $headers->header('Status',       HTTP_OK);
+
+  for my $cookie ($decorator->cookie) {
+    $self->{headers}->push_header('Set-Cookie', $_);
+  }
+
+  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
 
   $util->username($decorator->username());
   $util->session($self->session($util));
 
   my $viewobject = $self->dispatch({
-                                    util   => $util,
-                                    entity => $entity,
-                                    aspect => $aspect,
-                                    action => $action,
-                                    id     => $id,
+                                    util    => $util,
+                                    entity  => $entity,
+                                    aspect  => $aspect,
+                                    action  => $action,
+                                    id      => $id,
+                                    headers => $headers,
                                    });
   if(!$viewobject) {
-#    carp qq[controller::handler: no view errstr=@{[$self->errstr||q[-]]}];
-    $self->set_http_status(); # use response_code set in ->dispatch(). Who's responsible for setting headers?
-    print "\n" or croak qq[Error printing: $ERRNO]; # end headers - no viewobject to hang output_buffer/output_flush off
-    return $self->handle_error(undef, 1);
+    #########
+    # Without a view object here we can't determine the correct
+    # content-type for a response which has completely failed.
+    # 
+    # Need to force emission of response headers here. How does this interact with mod_perl?
+    #
+    print $headers->as_string, "\n" or croak qq[Error printing: $ERRNO];
+carp qq[NO VIEW: @{[$headers->as_string]}];
+    return $self->handle_error(undef, $headers);
   }
 
 #  carp qq[controller::handler: successful $viewobject];
@@ -528,23 +481,29 @@ sub handler {
   #
   $viewobject->decorator($decorator);
 
-  if($decor) {
-    if($viewobject->charset && $decorator->can('charset')) {
-      $decorator->charset($viewobject->charset);
-    }
+  my $charset      = $viewobject->charset();
+  $charset         = $charset ? q[;charset=$charset] : q[];
+  my $content_type = sprintf q[%s%s], $viewobject->content_type(), $charset;
 
-    my $content_type = $viewobject->content_type();
-    my $charset      = $viewobject->charset();
+  #########
+  # update the content-type/charset with whatever the view determined was right for the response
+  #
+  $headers->header('Content-Type', $content_type);
+
+  if($decor) {
     if($content_type =~ /text/smx && $charset =~ /utf-?8/smix) {
       binmode STDOUT, q[:encoding(UTF-8)]; # is this useful? If so, should it be less conditional?
     }
 
+    #########
+    # decorated header
+    #
     $viewobject->output_buffer($decorator->header());
   } else {
     #########
     # undecorated responses still need to have HTTP response headers closed off
     #
-    $viewobject->output_buffer("\n");
+#    $viewobject->output_buffer("\n");
   }
 
   my $errstr;
@@ -567,71 +526,35 @@ sub handler {
     carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $viewobject->output_reset(); # reset headers on the original view
     $self->errstr($EVAL_ERROR);
-    my $code = $viewobject->response_code;
 
+    my $code = $headers->header('Status');
+carp qq[code was $code];
     if(!$code || $code == HTTP_OK) {
-#      $viewobject->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
+      $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
     }
 
-#    my ($junk, $headers) = $viewobject->response_code();
-#    $self->response_headers({%{$headers}}); # Content-Type comes from here
-
-#    $self->set_http_status(sub { my @args = @_; $viewobject->output_prepend(@args); });
-#    $viewobject->output_buffer("\n"); # end headers
-#    $viewobject->output_flush();      # emit output_buffer (headers) buffered in the original view
-    return $self->handle_error();     # hand off
+    return $self->handle_error(undef, $headers); # hand off
   };
 
   #########
-  # handle special cases like redirect headers
+  # prepend all response headers (and header block termination)
   #
-  my ($code, $headers) = $viewobject->response_code();
-
-  #########
-  # copy response header state from view into self
-  #
-  $self->response_code($code);
-  $self->response_headers({%{$headers}});
-
-  my $bail_early = 0;
-#  carp qq[controller::handler: bail_early=$bail_early];
-  if($code && !is_success($code)) { # is_error | is_redirect
-    $viewobject->output_reset();
-    $bail_early = 1;
-  }
-
-  #########
-  # emit http response headers based on self->response_code/response_headers
-  #
-  $self->set_http_status(sub { my @args = @_; $viewobject->output_prepend(@args); });
-#  carp qq[controller::handler: after set_http_status];
-  #########
-  # bail out of response handler early (trigger subrequest if necessary)
-  #
-  if($bail_early) {
-    $viewobject->output_flush();
-    return $self->handle_error();
-  }
+  $viewobject->output_prepend($headers->as_string, "\n");
+carp qq[PREPEND @{[$headers->as_string]}\n];
+  # any special case status code handling? bail out early?
 
   #########
   # re-test decor in case it's changed by render()
   #
   if($viewobject->decor()) {
-#    carp qq[controller::handler: decorated footer];
-    #########
-    # dump footer
-    #
     $viewobject->output_buffer($decorator->footer());
   }
 
-#  carp qq[controller::handler: output_end];
   #########
   # flush everything left to client socket (via stdout)
   #
   $viewobject->output_end();
 
-#  carp qq[controller::handler: cleaning up];
   #########
   # save the session after the request has processed
   #
@@ -646,11 +569,11 @@ sub handler {
 }
 
 sub handle_error {
-  my ($self, $errstr, $strip_headers) = @_;
+  my ($self, $errstr, $headers) = @_;
   my $util      = $self->util;
   my $decorator = $self->decorator();
   my $namespace = $self->namespace();
-  my ($action, $entity, $aspect, $id) = $self->process_request($util);
+  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
 
   # if running in mod_perl, main request serves a bad status header and errordocument is handled by a subrequest
   # if running in CGI, main request serves a bad status header and follows with errordocument content
@@ -666,12 +589,12 @@ sub handle_error {
 #  carp qq[controller::handle_error: errstr = @{[$self->errstr || q[undef] ]}];
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
+  print $headers->as_string(), "\n";
+
   if($util->cgi->r) {
     #########
     # mod-perl errordocument handled by subrequest
     #
-#    carp qq[controller::handle_error: mod_perl error response. code=@{[$self->response_code]}];
-    $self->set_http_status();
     return;
   }
 
@@ -681,16 +604,18 @@ sub handle_error {
   my $error_ns = sprintf q[%s::view::error], $namespace;
 #  carp qq[controller::handle_error: handling error with $error_ns];
 
+  my $params = {
+                util    => $util,
+                action  => $action,
+                aspect  => $aspect,
+                headers => $headers, # same header block as original response? hmm.
+               };
   my $viewobject;
   eval {
-    $viewobject = $error_ns->new({
-                                  util   => $util,
-                                  action => $action,
-                                  aspect => $aspect,
-                                 });
+    $viewobject = $error_ns->new($params);
     1;
   } or do {
-    $viewobject = ClearPress::view::error->new({util => $util});
+    $viewobject = ClearPress::view::error->new($params);
   };
 
   my $decor  = $viewobject->decor();
@@ -700,10 +625,6 @@ sub handle_error {
   if($viewobject->decor) {
     $header = $decorator->header;
     $footer = $decorator->footer;
-    if($strip_headers) {
-#      carp qq[controller::handle_error: stripping headers];
-      $header =~ s{.*?\n\n}{}smx;
-    }
   }
 
   my $str = $header . $viewobject->render . $footer;
@@ -766,12 +687,12 @@ sub dispatch {
   my $aspect    = $ref->{aspect};
   my $action    = $ref->{action};
   my $id        = $ref->{id};
+  my $headers   = $ref->{headers};
   my $viewobject;
 
   my $state = $self->is_valid_view($ref, $entity);
   if(!$state) {
-    $self->response_code(HTTP_NOT_FOUND);
-    $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
+    $headers->header('Status', HTTP_NOT_FOUND);
     $self->errstr(qq[No such view ($entity). Is it in your config.ini?]);
     return;
   }
@@ -795,8 +716,7 @@ sub dispatch {
 
     if(!$modelobject) {
       carp q[no model];
-      $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-      $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
+      $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
       $self->errstr(qq[Failed to instantiate $entity model: $EVAL_ERROR]);
       return;
     }
@@ -810,6 +730,7 @@ sub dispatch {
                                    aspect      => $aspect,
                                    entity_name => $entity_name,
                                    decorator   => $self->decorator,
+                                   headers     => $headers,
                                   });
     1;
   } or do {
@@ -819,8 +740,7 @@ sub dispatch {
 
   if(!$viewobject) {
     carp q[no view];
-    $self->response_code(HTTP_INTERNAL_SERVER_ERROR);
-    $self->response_headers({'Content-Type' => 'text/html'}); # no option but to set this
+    $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
     $self->errstr(qq[Failed to instantiate $entity view: $EVAL_ERROR]);
     return;
   }
@@ -885,7 +805,7 @@ $Revision: 470 $
 
 =head2 process_request - extract useful things from %ENV relating to our URI
 
-  my ($sAction, $sEntity, $sAspect, $sId) = $oCtrl->process_request($oUtil);
+  my ($sAction, $sEntity, $sAspect, $sId) = $oCtrl->process_request($oHTTPResponseHeaders;
 
 =head2 handler - run the controller
 
@@ -906,16 +826,6 @@ $Revision: 470 $
 =head2 is_valid_view - view-name validation
 
 #=head2 build_error_object - builds an error view object
-
-=head2 response_code - wrap view->response_code and extend with more error statuses
-
-=head2 response_headers - wrap view->response_code
-
-=head2 set_http_status - configure outbound response status header via CGI.pm
-
- $oController->set_http_status();
-
- Based on view->response_code || controller->response_code
 
 =head2 handle_error - main request error response
 

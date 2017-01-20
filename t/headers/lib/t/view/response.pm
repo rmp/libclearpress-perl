@@ -15,10 +15,10 @@ sub read {
 
   $self->{redirect_code} = scalar $cgi->param('redirect_code');
 
-  my $headers = {};
+  my $headers = $self->headers;
 
   if($code == HTTP_MOVED_PERMANENTLY || $code == HTTP_FOUND) {
-    $headers->{Location} = "$ENV{SCRIPT_NAME}/response/200?redirect_code=$code";
+    $headers->header('Location', "$ENV{SCRIPT_NAME}/response/200?redirect_code=$code");
   }
 
   if($code == 999) {
@@ -28,7 +28,7 @@ sub read {
   if($code !~ /^\d+$/) {
     $code = HTTP_NOT_FOUND;
   }
-  $self->response_code($code, $headers);
+  $headers->header('Status', $code);
 
   return;
 }

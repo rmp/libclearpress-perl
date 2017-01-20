@@ -42,6 +42,7 @@ sub new {
 
   local $ENV{HTTP_HOST}             = q[test];
   local $ENV{SERVER_PROTOCOL}       = q[HTTP];
+  local $ENV{SCRIPT_NAME}           = $ref->{SCRIPT_NAME};
   local $ENV{REQUEST_METHOD}        = $ref->{REQUEST_METHOD};
   local $ENV{HTTP_X_REQUESTED_WITH} = $ref->{xhr}?'XmlHttpRequest':q[];
   local $ENV{PATH_INFO}             = $ref->{PATH_INFO};

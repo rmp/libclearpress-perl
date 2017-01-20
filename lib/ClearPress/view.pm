@@ -27,13 +27,13 @@ our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
 our $LEXICON_CACHE  = {};
 
-__PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator));
+__PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator headers));
 
 sub new { ## no critic (Complexity)
   my ($class, $self)    = @_;
   $self               ||= {};
   bless $self, $class;
-
+carp qq[$class -> new with headers=$self->{headers}];
   my $util                    = $self->util;
   my $username                = $util ? $util->username : q[];
   $self->{requestor_username} = $username;
@@ -42,8 +42,6 @@ sub new { ## no critic (Complexity)
   $self->{output_buffer}      = [];
   $self->{output_finished}    = 0;
   $self->{autoescape}         = 1;
-#  $self->{response_code}      = HTTP_OK; # let controller decide the default - easier to determine if view failed deliberately
-  $self->{response_headers}   = {};
 
   my $aspect = $self->aspect || q[];
 
@@ -166,42 +164,6 @@ sub _accessor { ## no critic (ProhibitUnusedPrivateSubroutines)
   return $self->{$field};
 }
 
-sub response_code {
-  my ($self, $status, $headers) = @_;
-
-  if($status) {
-#    carp qq[$self view::response_code: replacing response_code @{[$self->{response_code}||q[-]]} with $status];
-    $self->{response_code} = $status;
-
-    if($headers) {
-      while(my ($k, $v) = each %{$headers}) {
-        $self->{response_headers}->{$k} = $v;
-      }
-    }
-  }
-
-  if(!wantarray) {
-    return $self->{response_code};
-  }
-
-  my $tmp = $self->{response_headers};
-  if(!$tmp->{content_type}) {
-    my $charset = $self->charset;
-    if(defined $charset) {
-      $charset = qq[; charset="$charset"];
-    }
-
-    my $content_type = $self->content_type();
-    $tmp->{'Content-Type'} = qq[$content_type$charset];
-  }
-
-  if($ENV{dev} && $ENV{dev} =~ m{dev(?:elopment)}smix) {
-    $tmp->{'X-Generated-By'} = sprintf q[ClearPress v%s], $VERSION;
-  }
-
-  return ($self->{response_code}, $self->{response_headers});
-}
-
 sub authorised {
   my $self      = shift;
   my $action    = $self->action || q[];
@@ -317,7 +279,7 @@ sub render {
     #########
     # set http forbidden response code
     #
-    $self->response_code(HTTP_FORBIDDEN);
+    $self->headers->header('Status', HTTP_FORBIDDEN);
 
     if(!$requestor) {
       croak q[Authorisation unavailable for this view.];
@@ -759,7 +721,10 @@ sub actions {
 sub redirect {
   my ($self, $url, $status) = @_;
 
-  return $self->response_code($status || HTTP_FOUND, { Location => $url });
+  $self->headers->header('Status', HTTP_FOUND);
+  $self->headers->header('Location', $url);
+
+  return 1;
 }
 
 # todo: auto-create these <action>_<format> style accessors
@@ -1088,12 +1053,6 @@ e.g.
   into $to_scalar.
 
   $oView->process_template('template.tt2', {extra=>'params'}, $to_scalar);
-
-=head2 response_code - set http response code header
-
-  $oView->response_code(HTTP_OK);
-
-  Note this isn't emitted immediately. The last value takes precedence.
 
 =head2 output_buffer - For streamed output: queue a string for output
 
