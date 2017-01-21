@@ -592,13 +592,6 @@ sub handle_error {
 
   print $headers->as_string(), "\n" or croak qq[Error printing: $ERRNO];
 
-  if($util->cgi->r) {
-    #########
-    # mod-perl errordocument handled by subrequest
-    #
-    return;
-  }
-
   #########
   # non-mod-perl errordocument handled by application internals
   #
