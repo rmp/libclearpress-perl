@@ -5,13 +5,16 @@ use base qw(ClearPress::view);
 use Carp;
 use HTTP::Status qw(:constants);
 
+*create = \&read;
+*update = \&read;
+*delete = \&read;
+
 sub read {
   my $self  = shift;
   my $model = $self->model;
   my $code  = $model->code;
-
-  my $util = $self->util;
-  my $cgi  = $util->cgi;
+  my $util  = $self->util;
+  my $cgi   = $util->cgi;
 
   $self->{redirect_code} = scalar $cgi->param('redirect_code');
 

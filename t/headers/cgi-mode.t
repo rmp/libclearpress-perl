@@ -66,7 +66,7 @@ my $runner = sub {
 	       ['/t', '/response/999', 'GET', '', HTTP_INTERNAL_SERVER_ERROR, 'Application Error', '999 failure'],
 
 	       ['/t', '/no_config',    'POST', '', HTTP_NOT_FOUND,             '', 'no config'],
-	       ['/t', '/no_model',     'POST', '', HTTP_INTERNAL_SERVER_ERROR,           '', 'no model'],
+	       ['/t', '/no_model',     'POST', '', HTTP_INTERNAL_SERVER_ERROR, '', 'no model'],
 	       ['/t', '/response/200', 'POST', '', HTTP_OK,                    '', '200 response'], # extractors look for error blocks, so can't check "code=200" here
 	       ['/t', '/response/301', 'POST', '', HTTP_MOVED_PERMANENTLY,     '', '301 redirect'],
 	       ['/t', '/response/302', 'POST', '', HTTP_FOUND,                 '', '302 moved'],

@@ -107,9 +107,10 @@ t/headers/data/config.ini
 t/headers/data/headers.sql3
 t/headers/data/templates/actions.tt2
 t/headers/data/templates/response/read.tt2
+t/headers/data/templates/response/read_csv.tt2
 t/headers/data/templates/response/read_json.tt2
 t/headers/data/templates/response/read_xml.tt2
-t/headers/data/templates/response/response_read_csv.tt2
+t/headers/data/templates/response/update_csv.tt2
 t/headers/data/templates/response/update_xml.tt2
 t/headers/data/templates/response/warnings.tt2
 t/headers/lib/t/model/response.pm
