@@ -110,13 +110,14 @@ t/headers/data/templates/response/read.tt2
 t/headers/data/templates/response/read_csv.tt2
 t/headers/data/templates/response/read_json.tt2
 t/headers/data/templates/response/read_xml.tt2
+t/headers/data/templates/response/update.tt2
 t/headers/data/templates/response/update_csv.tt2
+t/headers/data/templates/response/update_json.tt2
 t/headers/data/templates/response/update_xml.tt2
 t/headers/data/templates/response/warnings.tt2
 t/headers/lib/t/model/response.pm
 t/headers/lib/t/view/no_model.pm
 t/headers/lib/t/view/response.pm
-t/headers/mod_perl.t
 t/lib/Net/LDAP.pm
 t/lib/t/dbh.pm
 t/lib/t/model.pm
