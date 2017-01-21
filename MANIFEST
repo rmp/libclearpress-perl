@@ -104,7 +104,6 @@ t/driver/40-driver-sqlite.t
 t/driver/40-driver.t
 t/headers/cgi-mode.t
 t/headers/data/config.ini
-t/headers/data/headers.sql3
 t/headers/data/templates/actions.tt2
 t/headers/data/templates/response/read.tt2
 t/headers/data/templates/response/read_csv.tt2

@@ -87,7 +87,7 @@ sub render {
   my $aspect = $self->aspect() || q[];
   my $errstr = $self->errstr;
   my $pi     = $ENV{PATH_INFO} || q[];
-  my ($code) = $pi =~ m{(\d+)}smix; # mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
+  my ($code) = $pi =~ m{(\d+)}smix; # Requires Apache ErrorDocument /<application>/<errorcode>. mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
 
   $errstr ||= $CODEMAP->{$code};
 
