@@ -731,7 +731,7 @@ sub redirect {
 # automated method generation for core CRUD+ view methods
 #
 BEGIN {
-  no strict 'refs';
+  no strict 'refs'; ## no critic (ProhibitNoStrict)
   for my $ext (qw(xml ajax json csv)) {
     for my $method (qw(create list read update delete)) {
       my $ns = sprintf q[%s_%s], $method, $ext;
@@ -969,6 +969,16 @@ e.g.
 =head2 update_json - default passthrough to update for json service
 
 =head2 delete_json - default passthrough to delete for json service
+
+=head2 list_csv - default passthrough to list for csv service
+
+=head2 read_csv - default passthrough to read for csv service
+
+=head2 create_csv - default passthrough to create for csv service
+
+=head2 update_csv - default passthrough to update for csv service
+
+=head2 delete_csv - default passthrough to delete for csv service
 
 =head2 init - post-constructor initialisation hook for subclasses
 
