@@ -73,7 +73,6 @@ my $util = t::util->new();
 			     REQUEST_METHOD => 'GET',
 			     util           => $util,
 			    });
-  diag $str;
   is_rendered_js($str, 'derived_list.js', 'derived list js');
 }
 

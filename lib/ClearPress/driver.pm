@@ -90,7 +90,7 @@ sub drop_table {
   my ($self, $table_name) = @_;
   my $dbh = $self->dbh();
 
-  $dbh->do(qq[DROP TABLE $table_name]);
+  $dbh->do(qq[DROP TABLE IF EXISTS $table_name]);
   $dbh->commit();
 
   return 1;

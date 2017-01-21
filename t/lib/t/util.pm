@@ -10,29 +10,27 @@ use XML::Simple qw(XMLin);
 use JSON;
 use English qw(-no_match_vars);
 use Digest::SHA qw(sha1_hex);
+use File::Temp qw(tempdir);
 
 our @EXPORT_OK = qw(is_rendered_js);
 
 $ENV{dev} = q[test];
 
 sub _tmp_db_name {
-  return sprintf q[%s.db], sha1_hex($PROGRAM_NAME);
+  return sprintf q[%s/%s.db], tempdir(CLEANUP => 1), sha1_hex($PROGRAM_NAME);
 }
 
 sub new {
   my ($class, @args) = @_;
 
-  my $db = _tmp_db_name();
-  if(-e $db) {
-    unlink $db;
-  }
-
+  my $db   = _tmp_db_name();
   my $self = $class->SUPER::new(@args);
   $self->config->setval('test','dbname', $db);
 
   my $drv  = $self->driver();
 
   eval {
+    $drv->drop_table('derived');
     $drv->create_table('derived',
 		       {
 			id_derived        => 'primary key',
@@ -44,11 +42,14 @@ sub new {
 			float_dummy       => 'float unsigned',
 		       });
 
+    $drv->drop_table('derived_parent');
     $drv->create_table('derived_parent',
 		       {
 			id_derived_parent => 'primary key',
 			text_dummy        => 'text',
 		       });
+
+    $drv->drop_table('derived_child');
     $drv->create_table('derived_child',
 		       {
 			id_derived_child  => 'primary key',
@@ -56,22 +57,29 @@ sub new {
 			text_dummy        => 'text',
 		       });
 
+    $drv->drop_table('derived_status');
     $drv->create_table('derived_status',
 		       {
 			id_derived_status => 'primary key',
 			id_status         => 'integer unsigned',
 		       });
+
+    $drv->drop_table('status');
     $drv->create_table('status',
 		       {
 			id_status   => 'primary key',
 			description => 'text',
 		       });
+
+    $drv->drop_table('derived_attr');
     $drv->create_table('derived_attr',
 		       {
 			id_derived_attr => 'primary key',
 			id_attribute    => 'integer unsigned',
 			id_derived      => 'integer unsigned',
 		       });
+
+    $drv->drop_table('attribute');
     $drv->create_table('attribute',
 		       {
 			id_attribute => 'primary key',
@@ -79,11 +87,11 @@ sub new {
 		       });
   } or do {
     #########
-    # Failure to create tables is usually down to the developer trying
+    # Failure to create tables is often down to the developer trying
     # to initialise two util objects in the same perl instance,
     # presuming they're unique.
     #
-#    carp $EVAL_ERROR;
+    carp $EVAL_ERROR;
   };
 
   return $self;
@@ -109,19 +117,6 @@ sub requestor {
   }
 
   return $self->{requestor};
-}
-
-sub DESTROY {
-  my $self = shift;
-  if($self->{driver}) {
-    $self->{driver}->DESTROY();
-  }
-
-  my $db = _tmp_db_name();
-  if(-e $db) {
-    unlink $db;
-  }
-  return 1;
 }
 
 sub is_rendered_js {
