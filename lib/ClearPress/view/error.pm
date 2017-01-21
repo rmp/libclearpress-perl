@@ -98,7 +98,7 @@ sub render {
   if($self->safe_errors) {
     print {*STDERR} "Serving error: $errstr\n" or croak $ERRNO;
     $errstr =~ s/[ ]at[ ]\S+[ ]line[ ][[:digit:]]+//smxg;
-    $errstr =~ s/\s+$//smx;
+    $errstr =~ s/\s+[.]?$//smx;
   }
 
   #########
