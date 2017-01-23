@@ -724,6 +724,10 @@ sub redirect {
   $self->headers->header('Status', HTTP_FOUND);
   $self->headers->header('Location', $url);
 
+  #########
+  # chances are we *always* want to do this
+  #
+  $self->output_buffer($self->headers->as_string);
   return 1;
 }
 
