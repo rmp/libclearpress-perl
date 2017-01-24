@@ -537,9 +537,9 @@ sub handler {
       $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    my $content_type = $self->headers->header('Content-Type');
+    my $content_type = $headers->header('Content-Type');
     $content_type =~ s{;.*$}{}smx;
-    $self->headers->header('Content-Type', $content_type); # ErrorDocuments seem to have a bit of trouble with content-encoding errors so strip the charset
+    $headers->header('Content-Type', $content_type); # ErrorDocuments seem to have a bit of trouble with content-encoding errors so strip the charset
 
     return $self->handle_error(undef, $headers); # hand off
   };
