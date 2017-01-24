@@ -590,6 +590,13 @@ sub handle_error {
   #
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
+  if($ENV{REDIRECT_STATUS}) {
+    #########
+    # If this is an internal redirect, the errordocument is actually served with a 200
+    #
+    $headers->header('Status', HTTP_OK);
+  }
+
   print $headers->as_string(), "\n" or croak qq[Error printing: $ERRNO];
 
   #########
