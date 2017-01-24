@@ -8,7 +8,7 @@ use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 77;
+  plan tests => 80;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
@@ -231,7 +231,28 @@ for my $b (@{$B}) {
     $ctrl->handler($util);
   };
 
-  like($trap->stdout, qr/charset=UTF-8/smx, 'header is UTF-8 by default');
+  like($trap->stdout, qr{Status:[ ]500}smix,  'error response status');
+  unlike($trap->stdout, qr/charset=UTF-8/smx, 'error response header is NOT UTF-8 by default');
+  delete $util->{cgi};
+}
+
+{
+  delete $util->{config};
+$util->config->setval('application', 'views', 'thing20');
+  local %ENV = (
+		DOCUMENT_ROOT  => 't/htdocs',
+		REQUEST_METHOD => 'GET',
+		QUERY_STRING   => q[],
+		PATH_INFO      => '/thing20',
+	       );
+
+  my $ctrl = $CTRL->new({util => $util});
+  trap {
+    $ctrl->handler($util);
+  };
+
+  like($trap->stdout, qr{Status:[ ]200}smix, 'non-error response status');
+  like($trap->stdout, qr/charset=UTF-8/smx,  'non-error response header is UTF-8 by default');
   delete $util->{cgi};
 }
 
@@ -240,7 +261,25 @@ use base qw(ClearPress::view);
 
 1;
 
+package t::view::thing20;
+use base qw(ClearPress::view);
+
+sub decor { return; }
+sub streamed_aspects { return ['list']; }
+sub list {
+  my $self = shift;
+  $self->output_buffer($self->headers->as_string, "\n");
+  $self->output_buffer(q[list]);
+  return q[];
+}
+1;
+
 package t::model::thing;
+use base qw(ClearPress::model);
+
+1;
+
+package t::model::thing20;
 use base qw(ClearPress::model);
 
 1;

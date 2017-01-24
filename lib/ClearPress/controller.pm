@@ -494,7 +494,7 @@ sub handler {
   $viewobject->decorator($decorator);
 
   my $charset      = $viewobject->charset();
-  $charset         = $charset ? qq[;charset=$charset] : q[];
+  $charset         = ($charset && !exists $ENV{REDIRECT_STATUS}) ? qq[;charset=$charset] : q[];
   my $content_type = sprintf q[%s%s], $viewobject->content_type(), $charset;
 
   #########
@@ -537,7 +537,7 @@ sub handler {
       $headers->header('Status', HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    my $content_type = $headers->header('Content-Type');
+#    my $content_type = $headers->header('Content-Type');
     $content_type =~ s{;.*$}{}smx;
     $headers->header('Content-Type', $content_type); # ErrorDocuments seem to have a bit of trouble with content-encoding errors so strip the charset
 
