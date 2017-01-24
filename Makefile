@@ -1,6 +1,6 @@
 MAJOR    ?= 475
 MINOR    ?= 1
-SUB      ?= 16
+SUB      ?= 18
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i

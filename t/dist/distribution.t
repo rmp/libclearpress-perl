@@ -14,7 +14,7 @@ use Test::More;
 use English qw(-no_match_vars);
 use lib qw(t); use Net::LDAP;
 
-our $VERSION = q[475.1.16];
+our $VERSION = q[475.1.18];
 
 eval {
   require Test::Distribution;
