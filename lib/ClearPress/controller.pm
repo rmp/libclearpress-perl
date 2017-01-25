@@ -606,8 +606,6 @@ sub handle_error {
   #
   $util->cgi->param('errstr', CGI::escape($errstr || $self->errstr));
 
-  print $headers->as_string(), "\n" or croak qq[Error printing: $ERRNO];
-
   #########
   # non-mod-perl errordocument handled by application internals
   #
@@ -638,6 +636,7 @@ sub handle_error {
 
   my $str = $header . $viewobject->render . $footer;
 
+  $viewobject->output_buffer($headers->as_string(), "\n");
   $viewobject->output_buffer($str);
   $viewobject->output_end();
   $decorator->save_session();
