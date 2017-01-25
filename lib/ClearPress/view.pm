@@ -733,7 +733,9 @@ sub redirect {
   #########
   # chances are we *always* want to do this
   #
+  $self->output_reset();
   $self->output_buffer($self->headers->as_string, "\n");
+
   return 1;
 }
 

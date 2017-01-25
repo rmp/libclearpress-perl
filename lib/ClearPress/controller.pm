@@ -634,9 +634,11 @@ sub handle_error {
     $footer = $decorator->footer;
   }
 
+  $viewobject->output_reset();
+  $viewobject->output_buffer($headers->as_string(), "\n");
+
   my $str = $header . $viewobject->render . $footer;
 
-  $viewobject->output_buffer($headers->as_string(), "\n");
   $viewobject->output_buffer($str);
   $viewobject->output_end();
   $decorator->save_session();
