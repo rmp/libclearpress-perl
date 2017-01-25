@@ -21,7 +21,7 @@ use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
 use HTTP::Status qw(:constants);
 
-our $VERSION = q[475.1.18];
+our $VERSION = q[475.1.20];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
