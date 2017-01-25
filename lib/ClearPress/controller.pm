@@ -518,7 +518,19 @@ sub handler {
     #########
     # view->render() may be streamed
     #
-    $viewobject->output_buffer($viewobject->render());
+    if($viewobject->streamed) {
+      #########
+      # ->render is responsible for all (decorated/undecorated) output
+      #
+      $viewobject->render();
+
+    } else {
+      #########
+      # output returned content
+      #
+      $viewobject->output_buffer($viewobject->render());
+    }
+
     1;
   } or do {
     #########

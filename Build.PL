@@ -76,6 +76,12 @@ my $builder = Module::Build->new(
                                                         },
                                  recursive_test_files => 1,
 				 script_files        => [qw(bin/clearpress)],
+                                 tap_harness_args    => {
+                                                         jobs      => 10,
+                                                         verbosity => 1,
+                                                         merge     => 1,
+#                                                         xmlfile   => 'tap-harness-junit.xml',
+                                                        },
 
 				);
 

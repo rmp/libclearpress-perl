@@ -263,6 +263,18 @@ sub streamed_aspects {
   return [];
 }
 
+sub streamed {
+  my $self = shift;
+  my $aspect = $self->aspect;
+
+  for my $str_aspect (@{$self->streamed_aspects}) {
+    if($aspect eq $str_aspect) {
+      return 1;
+    }
+  }
+  return;
+}
+
 sub render {
   my $self   = shift;
   my $util   = $self->util;
@@ -308,13 +320,7 @@ sub render {
     #########
     # handle streamed methods
     #
-    my $streamed = 0;
-    for my $str_aspect (@{$self->streamed_aspects}) {
-      if($aspect eq $str_aspect) {
-	$streamed = 1;
-        last;
-      }
-    }
+    my $streamed = $self->streamed;
 
     if($streamed) {
       $self->output_flush;
@@ -924,6 +930,10 @@ e.g.
 
   $oView->decor($bDecorToggle);
   my $bDecorToggle = $oView->decor;
+
+=head2 streamed - current aspect is streamed, based on @{streamed_aspects}
+
+  my $bStreamedResponse = $oView->streamed;
 
 =head2 entity_name - get/set accessor for the entity_name
 
