@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More tests => 7;
+use lib qw(t/lib);
 use t::util;
 
 our $PKG = 'ClearPress::authenticator::db';

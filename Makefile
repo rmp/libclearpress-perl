@@ -1,6 +1,6 @@
-MAJOR    ?= 474
+MAJOR    ?= 475
 MINOR    ?= 1
-SUB      ?= 2
+SUB      ?= 20
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i
@@ -20,6 +20,7 @@ setup:
 	perl Build.PL
 
 manifest: setup
+	rm MANIFEST
 	./Build manifest
 
 clean:	setup

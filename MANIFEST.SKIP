@@ -73,3 +73,6 @@
 ^test.db
 META.yml
 META.json
+tmp/
+libclearpress-.*deb
+t/headers/data/headers.sql3

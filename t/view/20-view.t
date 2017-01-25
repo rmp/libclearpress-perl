@@ -4,12 +4,8 @@ use strict;
 use warnings;
 use Test::More;
 use English qw(-no_match_vars);
-use t::util;
 use IO::Scalar;
-use t::model;
 use CGI;
-use t::user::admin;
-use t::user::basic;
 use Test::Trap;
 use Carp;
 use File::Copy qw(copy);
@@ -22,6 +18,12 @@ eval {
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
+use t::util;
+use t::model;
+use t::user::admin;
+use t::user::basic;
 
 use_ok('ClearPress::view');
 

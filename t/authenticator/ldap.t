@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Test::More tests => 16;
-use lib qw(t);
+use lib qw(t/lib);
 use English qw(-no_match_vars);
 use IO::Capture::Stderr;
 

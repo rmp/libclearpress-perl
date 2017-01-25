@@ -15,14 +15,15 @@ use warnings;
 use CGI qw(param);
 use base qw(Class::Accessor);
 use Readonly;
+use Carp;
 
-our $VERSION = q[474.1.2];
+our $VERSION = q[475.1.20];
 our $DEFAULTS = {
 		 'meta_content_type' => 'text/html',
-		 'meta_version'      => '0.1',
+		 'meta_version'      => '0.2',
 		 'meta_description'  => q[],
-		 'meta_author'       => q$Author: zerojinx $,
-		 'meta_keywords'     => q[clearpress],
+		 'meta_author'       => q[],
+		 'meta_keywords'     => q[],
 		 'username'          => q[],
 		 'charset'           => q[iso8859-1],
 		};
@@ -42,7 +43,7 @@ sub fields {
   return qw(title stylesheet style jsfile script atom rss
             meta_keywords meta_description meta_author meta_version
             meta_refresh meta_cookie meta_content_type meta_expires
-            onload onunload onresize username charset);
+            onload onunload onresize username charset headers);
 }
 
 sub get {
@@ -84,7 +85,7 @@ sub new {
 sub header {
   my ($self) = @_;
 
-  return $self->http_header() . $self->site_header();
+  return $self->site_header();
 }
 
 sub cookie {
@@ -94,18 +95,13 @@ sub cookie {
     $self->{'cookie'} = \@cookies;
   }
 
-  return @{$self->{'cookie'}||[]};
+  return @{$self->{cookie}||[]};
 }
 
 sub http_header {
-  my $self    = shift;
-  my @cookies = grep { $_ } ($self->cookie());
-  my $charset = $self->charset;
-  my @headers = (qq[Content-type: text/html; charset=$charset],
-                 map {
-                   "Set-Cookie: $_";
-                 } @cookies);
-  return join "\n", @headers, "\n";
+  carp q[ClearPress::decorator::http_header is DEPRECATED];
+
+  return q[]; # don't emit anything at this point
 }
 
 sub site_header {

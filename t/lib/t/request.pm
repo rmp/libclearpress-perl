@@ -24,7 +24,7 @@ use JSON;
 
 Readonly::Array our @EXPORT_OK => qw(is_xml is_json is_xls is_txt);
 
-our $VERSION = q[474.1.2];
+our $VERSION = q[475.1.20];
 
 sub new {
   my ($class, $ref_in) = @_;
@@ -42,12 +42,14 @@ sub new {
 
   local $ENV{HTTP_HOST}             = q[test];
   local $ENV{SERVER_PROTOCOL}       = q[HTTP];
+  local $ENV{SCRIPT_NAME}           = $ref->{SCRIPT_NAME};
   local $ENV{REQUEST_METHOD}        = $ref->{REQUEST_METHOD};
   local $ENV{HTTP_X_REQUESTED_WITH} = $ref->{xhr}?'XmlHttpRequest':q[];
   local $ENV{PATH_INFO}             = $ref->{PATH_INFO};
   local $ENV{REQUEST_URI}           = "/request$ref->{PATH_INFO}";
 
   my $stdin = q[];
+  no warnings qw(redefine once);
   local *IO::Scalar::BINMODE = sub {};
   tie *STDIN, 'IO::Scalar', \$stdin;
 

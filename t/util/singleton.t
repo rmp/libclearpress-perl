@@ -5,7 +5,6 @@ use warnings;
 use Test::More;
 use English qw(-no_match_vars);
 use Test::Trap;
-use lib qw(.);
 
 eval {
   require DBD::SQLite;
@@ -13,6 +12,8 @@ eval {
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
 
 #diag(q[Expect ClearPress::driver / SQLite warnings about failure to create tables]);
 

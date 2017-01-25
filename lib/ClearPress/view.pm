@@ -1,13 +1,8 @@
 # -*- mode: cperl; tab-width: 8; indent-tabs-mode: nil; basic-offset: 2 -*-
 # vim:ts=8:sw=2:et:sta:sts=2
 #########
-# Author:        rmp
-# Maintainer:    $Author: zerojinx $
-# Created:       2007-03-28
-# Last Modified: $Date: 2015-09-21 10:19:13 +0100 (Mon, 21 Sep 2015) $
-# Id:            $Id: view.pm 470 2015-09-21 09:19:13Z zerojinx $
-# Source:        $Source: /cvsroot/clearpress/clearpress/lib/ClearPress/view.pm,v $
-# $HeadURL: svn+ssh://zerojinx@svn.code.sf.net/p/clearpress/code/trunk/lib/ClearPress/view.pm $
+# Author:  rmp
+# Created: 2007-03-28
 #
 package ClearPress::view;
 use strict;
@@ -26,13 +21,13 @@ use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
 use HTTP::Status qw(:constants);
 
-our $VERSION = q[474.1.2];
+our $VERSION = q[475.1.20];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
 our $LEXICON_CACHE  = {};
 
-__PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator));
+__PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator headers));
 
 sub new { ## no critic (Complexity)
   my ($class, $self)    = @_;
@@ -169,16 +164,6 @@ sub _accessor { ## no critic (ProhibitUnusedPrivateSubroutines)
   return $self->{$field};
 }
 
-sub response_code {
-  my ($self, $status) = @_;
-
-  if($status) {
-    $self->{response_code} = $status;
-  }
-
-  return $self->{response_code};
-}
-
 sub authorised {
   my $self      = shift;
   my $action    = $self->action || q[];
@@ -278,6 +263,18 @@ sub streamed_aspects {
   return [];
 }
 
+sub streamed {
+  my $self = shift;
+  my $aspect = $self->aspect;
+
+  for my $str_aspect (@{$self->streamed_aspects}) {
+    if($aspect eq $str_aspect) {
+      return 1;
+    }
+  }
+  return;
+}
+
 sub render {
   my $self   = shift;
   my $util   = $self->util;
@@ -294,7 +291,7 @@ sub render {
     #########
     # set http forbidden response code
     #
-    $self->response_code(HTTP_FORBIDDEN);
+    $self->headers->header('Status', HTTP_FORBIDDEN);
 
     if(!$requestor) {
       croak q[Authorisation unavailable for this view.];
@@ -323,12 +320,7 @@ sub render {
     #########
     # handle streamed methods
     #
-    my $streamed = 0;
-    for my $str_aspect (@{$self->streamed_aspects}) {
-      if($aspect eq $str_aspect) {
-	$streamed = 1;
-      }
-    }
+    my $streamed = $self->streamed;
 
     if($streamed) {
       $self->output_flush;
@@ -437,7 +429,7 @@ sub process_template { ## no critic (Complexity)
     $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
 
   } else {
-    $self->tt->process($template, $params) or croak $self->tt->error;
+    $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
   }
 
   return 1;
@@ -670,7 +662,7 @@ sub output_flush {
   $DEBUG_OUTPUT and carp "output_flush: @{[scalar @{$self->{output_buffer}}]} blobs in queue";
 
   eval {
-    print @{$self->{output_buffer}} or croak "Error flushing output: $ERRNO";
+    print @{$self->{output_buffer}} or croak $ERRNO;
     1;
   } or do {
     #########
@@ -683,10 +675,19 @@ sub output_flush {
   return 1;
 }
 
+sub output_prepend {
+  my ($self, @args) = @_;
+  if(!$self->output_finished) {
+    unshift @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
+    $DEBUG_OUTPUT and carp "output_prepend prepended (@{[scalar @args]} blobs)";
+  }
+  return 1;
+}
+
 sub output_buffer {
   my ($self, @args) = @_;
   if(!$self->output_finished) {
-    push @{$self->{output_buffer}}, @args;
+    push @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
     $DEBUG_OUTPUT and carp "output_buffer added (@{[scalar @args]} blobs)";
   }
   return 1;
@@ -724,108 +725,31 @@ sub actions {
 }
 
 sub redirect {
-  my ($self, $internal_uri, $status) = @_;
+  my ($self, $url, $status) = @_;
+
+  $self->headers->header('Status', HTTP_FOUND);
+  $self->headers->header('Location', $url);
 
   #########
-  # compile special pieces of mod-perl if not already compiled
+  # chances are we *always* want to do this
   #
-  for my $pkg (qw(Apache2::RequestRec Apache2::SubRequest)) {
-    my $ns = "$pkg::";
-    no strict 'refs'; ## no critic (ProhibitNoStrict)
-    if(!scalar %{$ns}) {
-      require $pkg;
-      $pkg->import();
+  $self->output_reset();
+  $self->output_buffer($self->headers->as_string, "\n");
+
+  return 1;
+}
+
+#########
+# automated method generation for core CRUD+ view methods
+#
+BEGIN {
+  no strict 'refs'; ## no critic (ProhibitNoStrict)
+  for my $ext (qw(xml ajax json csv)) {
+    for my $method (qw(create list read update delete)) {
+      my $ns = sprintf q[%s_%s], $method, $ext;
+      *{$ns} = sub { my $self = shift; return $self->$method; };
     }
   }
-
-  my $cgi = $self->util->cgi;
-  my $r   = $cgi->r;
-  if($r) {
-    $r->status($status || '301');
-
-    return $r->redirect($internal_uri);
-  }
-
-  carp q[Redirect support unavailable. Please request it via CPAN RT.];
-
-  return;
-}
-
-# todo: auto-create these <action>_<format> style accessors
-
-sub list_xml {
-  my $self = shift;
-  return $self->list;
-}
-
-sub read_xml {
-  my $self = shift;
-  return $self->read;
-}
-
-sub create_xml {
-  my $self = shift;
-  return $self->create;
-}
-
-sub update_xml {
-  my $self = shift;
-  return $self->update;
-}
-
-sub delete_xml {
-  my $self = shift;
-  return $self->delete;
-}
-
-sub list_ajax {
-  my $self = shift;
-  return $self->list;
-}
-
-sub read_ajax {
-  my $self = shift;
-  return $self->read;
-}
-
-sub create_ajax {
-  my $self = shift;
-  return $self->create;
-}
-
-sub update_ajax {
-  my $self = shift;
-  return $self->update;
-}
-
-sub delete_ajax {
-  my $self = shift;
-  return $self->delete;
-}
-
-sub list_json {
-  my $self = shift;
-  return $self->list;
-}
-
-sub read_json {
-  my $self = shift;
-  return $self->read;
-}
-
-sub create_json {
-  my $self = shift;
-  return $self->create;
-}
-
-sub update_json {
-  my $self = shift;
-  return $self->update;
-}
-
-sub delete_json {
-  my $self = shift;
-  return $self->delete;
 }
 
 1;
@@ -1009,6 +933,10 @@ e.g.
   $oView->decor($bDecorToggle);
   my $bDecorToggle = $oView->decor;
 
+=head2 streamed - current aspect is streamed, based on @{streamed_aspects}
+
+  my $bStreamedResponse = $oView->streamed;
+
 =head2 entity_name - get/set accessor for the entity_name
 
  Usually set by the controller, after processing the request. Used for
@@ -1058,6 +986,16 @@ e.g.
 
 =head2 delete_json - default passthrough to delete for json service
 
+=head2 list_csv - default passthrough to list for csv service
+
+=head2 read_csv - default passthrough to read for csv service
+
+=head2 create_csv - default passthrough to create for csv service
+
+=head2 update_csv - default passthrough to update for csv service
+
+=head2 delete_csv - default passthrough to delete for csv service
+
 =head2 init - post-constructor initialisation hook for subclasses
 
 =head2 process_template - process a template with standard parameters
@@ -1078,16 +1016,15 @@ e.g.
 
   $oView->process_template('template.tt2', {extra=>'params'}, $to_scalar);
 
-=head2 response_code - set http response code header
-
-  $oView->response_code(HTTP_OK);
-
-  Note this isn't emitted immediately. The last value takes precedence.
-
 =head2 output_buffer - For streamed output: queue a string for output
 
   $oView->output_buffer(q[my string]);
   $oView->output_buffer(@aStrings);
+
+=head2 output_prepend - prepend something for output - usually headers
+
+  $oView->output_prepend(q[my string]);
+  $oView->output_prepend(@aStrings);
 
 =head2 output_end - For streamed output: flag no more output and flush buffer
 
