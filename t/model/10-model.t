@@ -3,11 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
-use t::util;
 use English qw(-no_match_vars);
-use t::model::derived;
-use t::model::derived_status;
-use t::model::status;
 use Carp;
 use Test::Trap;
 
@@ -17,6 +13,12 @@ eval {
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
+use t::util;
+use t::model::derived;
+use t::model::derived_status;
+use t::model::status;
 
 use_ok('ClearPress::model');
 

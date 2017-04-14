@@ -2,7 +2,7 @@
 # vim:ts=8:sw=2:et:sta:sts=2
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 22;
 use English qw(-no_match_vars);
 
 use_ok('ClearPress::decorator');
@@ -94,12 +94,6 @@ use_ok('ClearPress::decorator');
 {
   my $dec = ClearPress::decorator->new();
   is($dec->footer(), from_file(q(footer-1.frag)), 'footer returns default html');
-}
-
-{
-  my $dec = ClearPress::decorator->new();
-  $ENV{'SCRIPT_NAME'} = '/foo';
-  is($dec->http_header(), from_file(q(header-2.frag)), 'header w/script_name is ok');
 }
 
 {

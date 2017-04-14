@@ -8,7 +8,8 @@ use Carp;
 
 eval {
   require DBD::mysql;
-  DBI->connect('DBI:mysql:database=test;host=localhost', 'root', undef, {RaiseError=>1}) or croak 'failed to connect';
+  my $dbh = DBI->connect('DBI:mysql:database=test;host=localhost', 'root', undef, {RaiseError=>1}) or croak 'failed to connect';
+  $dbh->do(q[DROP TABLE IF EXISTS derived]);
   plan tests => 6;
 } or do {
   plan skip_all => 'DBD::mysql not installed and/or mysql test database unavailable';
@@ -26,7 +27,6 @@ my $cfg = {
 
 my $drv = ClearPress::driver::mysql->new($cfg);
 isa_ok($drv, 'ClearPress::driver::mysql');
-
 
 {
   eval {

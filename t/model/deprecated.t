@@ -11,6 +11,7 @@ eval {
   plan skip_all => 'DBD::SQLite not installed';
 };
 
+use lib qw(t/lib);
 use t::model::derived;
 use t::util;
 use Test::Trap;

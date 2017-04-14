@@ -19,7 +19,7 @@ use DBI;
 use English qw(-no_match_vars);
 use Carp;
 
-our $VERSION = q[474.1.2];
+our $VERSION = q[475.1.20];
 
 sub new {
   my ($class, $ref) = @_;
@@ -90,7 +90,7 @@ sub drop_table {
   my ($self, $table_name) = @_;
   my $dbh = $self->dbh();
 
-  $dbh->do(qq[DROP TABLE $table_name]);
+  $dbh->do(qq[DROP TABLE IF EXISTS $table_name]);
   $dbh->commit();
 
   return 1;

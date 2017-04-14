@@ -1,3 +1,7 @@
+libclearpress-perl (475.1.20) stable; urgency=low
+
+  * Significant refactoring of HTTP response-headers and error serving
+
 libclearpress-perl (474.0.1) stable; urgency=low
 
   * Set $ClearPress::controller::EXPERIMENTAL_HEADERS = 1 to enable Apache2::RequestRec-based status response headers

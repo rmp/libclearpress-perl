@@ -3,16 +3,18 @@
 use strict;
 use warnings;
 use Test::More;
-use t::util;
 use English qw(-no_match_vars);
 use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 77;
+  plan tests => 80;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
+
+use lib qw(t/lib);
+use t::util;
 
 our $CTRL = 'ClearPress::controller';
 use_ok($CTRL);
@@ -129,7 +131,8 @@ my $T = [
 }
 
 {
-  is($CTRL->packagespace('view', 'testmap', $util),
+  my $ctrl = $CTRL->new({util => $util});
+  is($ctrl->packagespace('view', 'testmap', $util),
      't::view::foo::test',
      'packagemapped space');
 }
@@ -143,9 +146,11 @@ sub request_test {
 		QUERY_STRING   => $t->[2],
 		%{$t->[3]},
 	       );
-  my $ref = [];
+  my $ctrl    = $CTRL->new({util => $util});
+  my $headers = HTTP::Headers->new;
+  my $ref     = [];
   eval {
-    $ref = [$CTRL->process_request($util)];
+    $ref = [$ctrl->process_request($headers)];
 
   } or do {
     diag($EVAL_ERROR);
@@ -154,6 +159,7 @@ sub request_test {
   is((join q[,], @{$ref}),
      (join q[,], grep { defined } @{$t}[4..7]),
      "$t->[0] $t->[1]?$t->[2] => @{[join q[, ], grep {defined} @{$t}[4..7]]}");
+  delete $util->{cgi};
 }
 
 for my $t (@{$T}) {
@@ -174,7 +180,7 @@ for my $t (@{$T}) {
   request_test(['GET', '/', '', {}]);
 }
 
-my $B = [
+my $B = [# METHOD PATH_INFO    QUERY_STRING CGI COMMENT
 	 ['POST', '/thing/10;read_xml', '', {}, 'update vs. read'],
 	 ['POST', '/thing;read',        '', {}, 'create vs. read'],
 	 ['GET',  '/thing/10;delete',   '', {}, 'read vs. delete'],
@@ -195,26 +201,85 @@ for my $b (@{$B}) {
 		QUERY_STRING   => $b->[2],
 		%{$b->[3]},
 	       );
-  my $ref = [];
+  my $ctrl    = $CTRL->new({util => $util});
+  my $headers = HTTP::Headers->new;
+  my $ref     = [];
   eval {
-    $ref = [$CTRL->process_request($util)];
+    $ref = [$ctrl->process_request($headers)];
   };
+
   if(scalar @{$ref}) {
     diag(join q[,], @{$ref});
   }
+
   like($EVAL_ERROR, qr/Bad[ ]request/smx, $b->[4]);
+  delete $util->{cgi};
 }
 
 {
+  delete $util->{config};
+
   local %ENV = (
 		DOCUMENT_ROOT  => 't/htdocs',
 		REQUEST_METHOD => 'GET',
 		QUERY_STRING   => q[],
 		PATH_INFO      => '/thing/10',
 	       );
+
+  my $ctrl = $CTRL->new({util => $util});
   trap {
-    $CTRL->handler($util);
+    $ctrl->handler($util);
   };
 
-  like($trap->stdout, qr/charset=UTF-8/smx, 'header is UTF-8 by default');
+  like($trap->stdout, qr{Status:[ ]500}smix,  'error response status');
+  unlike($trap->stdout, qr/charset=UTF-8/smx, 'error response header is NOT UTF-8 by default');
+  delete $util->{cgi};
 }
+
+{
+  delete $util->{config};
+$util->config->setval('application', 'views', 'thing20');
+  local %ENV = (
+		DOCUMENT_ROOT  => 't/htdocs',
+		REQUEST_METHOD => 'GET',
+		QUERY_STRING   => q[],
+		PATH_INFO      => '/thing20',
+	       );
+
+  my $ctrl = $CTRL->new({util => $util});
+  trap {
+    $ctrl->handler($util);
+  };
+
+  like($trap->stdout, qr{Status:[ ]200}smix, 'non-error response status');
+  like($trap->stdout, qr/charset=UTF-8/smx,  'non-error response header is UTF-8 by default');
+  delete $util->{cgi};
+}
+
+package t::view::thing;
+use base qw(ClearPress::view);
+
+1;
+
+package t::view::thing20;
+use base qw(ClearPress::view);
+
+sub decor { return; }
+sub streamed_aspects { return ['list']; }
+sub list {
+  my $self = shift;
+  $self->output_buffer($self->headers->as_string, "\n");
+  $self->output_buffer(q[list]);
+  return q[];
+}
+1;
+
+package t::model::thing;
+use base qw(ClearPress::model);
+
+1;
+
+package t::model::thing20;
+use base qw(ClearPress::model);
+
+1;

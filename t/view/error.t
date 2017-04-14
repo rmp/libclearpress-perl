@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Test::More;
-use t::util;
 use English qw(-no_match_vars);
 use Carp;
 #use HTML::TreeBuilder;
@@ -18,11 +17,14 @@ eval {
   plan skip_all => 'DBD::SQLite not installed';
 };
 
+use lib qw(t/lib);
+use t::util;
+
+
 use_ok('ClearPress::view::error');
 
-my $util = t::util->new();
-
 {
+  my $util = t::util->new(); delete $util->{cgi};
   my $view = ClearPress::view::error->new({
 					   util   => $util,
 					  });
@@ -30,55 +32,60 @@ my $util = t::util->new();
 }
 
 {
+  my $util = t::util->new(); delete $util->{cgi};
+  $util->cgi->param('errstr', 'test');
   my $view = ClearPress::view::error->new({
 					   aspect => q[read],
-					   errstr => 'test',
 					   util   => $util,
 					  });
   trap {
-    render_ok($view, 'view-error-read.html');
+    render_ok($view, 'view-error-read.html', 'html error');
   };
   like($trap->stderr(), qr/Serving\ error/mix, 'warn to console');
 }
 
 {
+  my $util = t::util->new(); delete $util->{cgi};
+  $util->cgi->param('errstr', q[test & @ ' ; "]);
   my $view = ClearPress::view::error->new({
 					   aspect => q[read_xml],
-					   errstr => q[test & @ ' ; "],
 					   util   => $util,
 					  });
   trap {
-    render_ok($view, 'view-error-read.xml');
+    render_ok($view, 'view-error-read.xml', 'xml error');
   };
   like($trap->stderr(), qr/Serving\ error/mix, 'warn to console');
 }
 
 {
+  my $util = t::util->new(); delete $util->{cgi};
+  $util->cgi->param('errstr', q[test & @ ' ; "]);
   my $view = ClearPress::view::error->new({
 					   aspect => q[read_json],
-					   errstr => q[test & @ ' ; "],
 					   util   => $util,
 					  });
+
   trap {
-    is($view->render(), q[{"error":"Error: test & @ ' ; \""}]);
+    is($view->render(), q[{"error":"Error: test & @ ' ; \""}], 'streamed json error');
   };
   like($trap->stderr(), qr/Serving\ error/mix, 'warn to console');
 }
 
 {
+  my $util = t::util->new(); delete $util->{cgi};
   Template->error(q[a template error]);
   my $view = ClearPress::view::error->new({
 					   aspect => q[read],
 					   util   => $util,
 					  });
   trap {
-    render_ok($view, 'view-error-read-tt.html');
+    render_ok($view, 'view-error-read-tt.html', 'html template engine error');
   };
   like($trap->stderr(), qr/Serving\ error/mix, 'warn to console');
 }
 
 sub render_ok {
-  my ($view, $fn) = @_;
+  my ($view, $fn, $msg) = @_;
 
   open my $fh, q[<], "t/data/rendered/$fn" or croak $ERRNO;
   local $RS   = undef;
@@ -91,5 +98,5 @@ sub render_ok {
   my $rendered_tree = XML::TreeBuilder->new;
   $rendered_tree->parse($view->render());
 
-  return is($expected_tree->as_XML(), $rendered_tree->as_XML());
+  return is($rendered_tree->as_XML(), $expected_tree->as_XML(), $msg);
 }
