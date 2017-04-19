@@ -20,6 +20,7 @@ use utf8;
 use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
 use HTTP::Status qw(:constants);
+use JSON;
 
 our $VERSION = q[475.1.20];
 our $DEBUG_OUTPUT   = 0;
@@ -466,21 +467,31 @@ sub _populate_from_cgi {
 	       };
 
   #########
-  # parse old-style XML POST payload
+  # parse new-style POST payload
+  # todo: look at PUTDATA as well
   #
-  my $xmlpost = $cgi->param('POSTDATA');
-  if($xmlpost) {
-    utf8::decode($xmlpost);
+  my $postdata = $cgi->param('POSTDATA');
+  if($postdata) {
+    utf8::decode($postdata);
     eval {
-      $params = XMLin($xmlpost);
+      my $json = JSON->new->utf8;
+      eval {
+        $params = $json->decode($postdata);
+        1;
+
+      } or do {
+        $params = XMLin($postdata);
+      };
+
       for my $k (%{$params}) {
-	if(ref $params->{$k} &&
-	   ref $params->{$k} eq 'HASH' &&
-	   !scalar keys %{$params->{$k}}) {
-	  delete $params->{$k};
-	}
+        if(ref $params->{$k} &&
+           ref $params->{$k} eq 'HASH' &&
+           !scalar keys %{$params->{$k}}) {
+          delete $params->{$k};
+        }
       }
       1;
+
     } or do {
       #########
       # Not an XML-formatted POST body. Ignore for now.
@@ -490,7 +501,7 @@ sub _populate_from_cgi {
   }
 
   #########
-  # parse new-style XML POST payload
+  # parse old-style XML POST payload
   #
   my $xml = $cgi->param('XForms:Model');
   if($xml) {
