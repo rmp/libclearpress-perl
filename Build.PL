@@ -65,6 +65,7 @@ my $builder = Module::Build->new(
 							 'XML::LibXML'           => '1.66',
 							 'XML::Simple'           => '2.18',
 							 'XML::TreeBuilder'      => '3.09',
+                                                         'XML::XPath'            => '1.30',
 							},
 				 build_recommends    => {
                                                          'Spreadsheet::ParseExcel' => '0.59',

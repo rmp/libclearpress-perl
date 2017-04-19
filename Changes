@@ -1,3 +1,7 @@
+libclearpress-perl (475.2.1) stable; urgency=low
+
+  * Support for JSON POSTDATA, e.g. curl -X POST --data @file.js --header "Content-Type: application/json" http://localhost:8080/service.js
+
 libclearpress-perl (475.1.20) stable; urgency=low
 
   * Significant refactoring of HTTP response-headers and error serving
