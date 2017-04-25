@@ -1,12 +1,7 @@
 # -*- mode: cperl; tab-width: 8; indent-tabs-mode: nil; basic-offset: 2 -*-
 # vim:ts=8:sw=2:et:sta:sts=2
 #########
-# Author:        rmp
-# Maintainer:    $Author: zerojinx $
-# Created:       2007-03-28
-# Last Modified: $Date: 2015-09-21 10:19:13 +0100 (Mon, 21 Sep 2015) $
-# Id:            $Id: error.pm 470 2015-09-21 09:19:13Z zerojinx $
-# $HeadURL: svn+ssh://zerojinx@svn.code.sf.net/p/clearpress/code/trunk/lib/ClearPress/view/error.pm $
+# Author: rmp
 #
 package ClearPress::view::error;
 use strict;
@@ -65,19 +60,9 @@ sub init {
   my $util = $self->util;
   my $cgi  = $util->cgi;
 
-  $self->{errstr} = $cgi->unescape($cgi->param('errstr') || q[]);
+  $self->{errstr} = $cgi->unescape($cgi->param('errstr') || q[]) || q[];
 
   return $self->SUPER::init();
-}
-
-sub errstr {
-  my ($self, $errstr) = @_;
-
-  if($errstr) {
-    $self->{errstr} = $errstr;
-  }
-
-  return $self->{errstr};
 }
 
 sub render {
@@ -89,7 +74,8 @@ sub render {
   my $pi     = $ENV{PATH_INFO} || q[];
   my ($code) = $pi =~ m{(\d+)}smix; # Requires Apache ErrorDocument /<application>/<errorcode>. mod_perl can use $ENV{REDIRECT_STATUS} but doesn't work under cgi
 
-  $errstr ||= $CODEMAP->{$code};
+  $errstr ||= $CODEMAP->{$code||q[]};
+  $errstr ||= q[];
 
   if(Template->error()) {
     $errstr .= q(Template Error: ) . Template->error();
