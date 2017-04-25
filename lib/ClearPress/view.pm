@@ -22,7 +22,7 @@ use MIME::Base64 qw(encode_base64);
 use HTTP::Status qw(:constants);
 use JSON;
 
-our $VERSION = q[475.2.1];
+our $VERSION = q[475.2.2];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
