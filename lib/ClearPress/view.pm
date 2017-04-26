@@ -673,8 +673,9 @@ sub output_flush {
   $DEBUG_OUTPUT and carp "output_flush: @{[scalar @{$self->{output_buffer}}]} blobs in queue";
 
   eval {
-    print @{$self->{output_buffer}} or croak $ERRNO;
+    print grep { $_ } @{$self->{output_buffer}} or croak $ERRNO;
     1;
+
   } or do {
     #########
     # client stopped receiving (e.g. disconnect from lengthy streamed response)
@@ -689,6 +690,9 @@ sub output_flush {
 sub output_prepend {
   my ($self, @args) = @_;
   if(!$self->output_finished) {
+    if(scalar @args == 2 && $args[1] eq "\n" && !$args[0]) {
+      return;
+    }
     unshift @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
     $DEBUG_OUTPUT and carp "output_prepend prepended (@{[scalar @args]} blobs)";
   }
@@ -698,6 +702,10 @@ sub output_prepend {
 sub output_buffer {
   my ($self, @args) = @_;
   if(!$self->output_finished) {
+    if(scalar @args == 2 && $args[1] eq "\n" && !$args[0]) {
+      return;
+    }
+
     push @{$self->{output_buffer}}, grep { $_ } @args; # don't push undef or ""
     $DEBUG_OUTPUT and carp "output_buffer added (@{[scalar @args]} blobs)";
   }
@@ -742,10 +750,13 @@ sub redirect {
   $self->headers->header('Location', $url);
 
   #########
-  # chances are we *always* want to do this
+  # - reset all previously output but unflushed content
+  # - push headers down the pipe
+  # - empty header container
   #
   $self->output_reset();
   $self->output_buffer($self->headers->as_string, "\n");
+  $self->headers->clear();
 
   return 1;
 }
