@@ -1,6 +1,7 @@
 libclearpress-perl (475.2.2) stable; urgency=low
 
   * minor order change when emitting error responses
+  * exclude empty header emission
 
 libclearpress-perl (475.2.1) stable; urgency=low
 
