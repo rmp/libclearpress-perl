@@ -25,7 +25,7 @@ use CGI;
 use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
-our $VERSION = q[475.3.2];
+our $VERSION = q[475.3.3];
 our $CRUD    = {
 		POST   => 'create',
 		GET    => 'read',
@@ -611,10 +611,11 @@ sub handle_error {
   #
   my $error_ns = sprintf q[%s::view::error], $namespace;
   my $params   = {
-                  util    => $util,
-                  action  => $action,
-                  aspect  => $aspect,
-                  headers => $headers, # same header block as original response? hmm.
+                  util      => $util,
+                  action    => $action,
+                  aspect    => $aspect,
+                  headers   => $headers, # same header block as original response? hmm.
+                  decorator => $decorator,
                  };
 
   my $viewobject;
@@ -629,14 +630,16 @@ sub handle_error {
   my $header = q[];
   my $footer = q[];
 
+  $viewobject->output_reset();
+
+  my $body = $viewobject->render;
+
   if($viewobject->decor) {
     $header = $decorator->header;
     $footer = $decorator->footer;
   }
 
-  $viewobject->output_reset();
-
-  my $str = $header . $viewobject->render . $footer;
+  my $str = $header . $body . $footer;
 
   $viewobject->output_prepend($headers->as_string, "\n");
   $viewobject->output_buffer($str);

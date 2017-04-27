@@ -23,7 +23,7 @@ use HTTP::Status qw(:constants);
 use JSON;
 use Readonly;
 
-our $VERSION = q[475.3.2];
+our $VERSION = q[475.3.3];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
@@ -765,31 +765,18 @@ sub redirect {
   }
 
   $self->output_buffer($self->headers->as_string, "\n");
-  $self->output_buffer(<<"EOT");
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html>
- <head>
-   <meta http-equiv="refresh" content="0;URL='$url'" />
- </head>
- <body>
-   <h1>Document Moved</h1>
-   <p>
-     This document has moved <a href="$url">here</a>.
-   </p>
-   <script>
-document.location.href="$url";
-   </script>
- </body>
-</html>
-EOT
+  $self->decorator->meta_refresh(qq[0;URL='$url']);
 
   #########
   # clean everything up and terminate
   #
   $self->output_flush();
   $self->headers->clear();
-  $self->output_finished(1);
-  return 1;
+
+  return <<"EOT"
+   <p>This document has moved <a href="$url">here</a>.</p>
+   <script>document.location.href="$url";</script>
+EOT
 }
 
 #########

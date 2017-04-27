@@ -15,7 +15,7 @@ use Carp;
 use English qw(-no_match_vars);
 use Readonly;
 
-our $VERSION = q[475.3.2];
+our $VERSION = q[475.3.3];
 
 Readonly::Scalar our $TYPES => {
 				'primary key' => 'integer primary key autoincrement',
