@@ -759,6 +759,7 @@ sub redirect {
 
   Readonly::Scalar my $OVERFLOW => 1024;
   if(length $self->headers->as_string > $OVERFLOW) { # fudge for apparent buffer overflow with apache+mod_perl (ParseHeaders related?)
+    carp qq[warning: header block looks long];
     $self->headers->remove_header('Location');
     $self->headers->header('Status', HTTP_OK);
   }
@@ -766,20 +767,20 @@ sub redirect {
   $self->output_buffer($self->headers->as_string, "\n");
   $self->output_buffer(<<"EOT");
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-  <html>
-   <head>
-     <meta http-equiv="refresh" content="0;URL='$url'" />
-   </head>
-   <body>
-     <h1>Document Moved</h1>
-     <p>
-       This document has moved <a href="$url">here</a>.
-     </p>
-     <script>
+<html>
+ <head>
+   <meta http-equiv="refresh" content="0;URL='$url'" />
+ </head>
+ <body>
+   <h1>Document Moved</h1>
+   <p>
+     This document has moved <a href="$url">here</a>.
+   </p>
+   <script>
 document.location.href="$url";
-     </script>
-   </body>
-  </html>
+   </script>
+ </body>
+</html>
 EOT
 
   #########
