@@ -21,8 +21,9 @@ use ClearPress::Localize;
 use MIME::Base64 qw(encode_base64);
 use HTTP::Status qw(:constants);
 use JSON;
+use Readonly;
 
-our $VERSION = q[475.2.2];
+our $VERSION = q[475.3.2];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
@@ -669,7 +670,7 @@ sub decor {
 }
 
 sub output_flush {
-  my $self = shift;
+  my ($self) = @_;
   $DEBUG_OUTPUT and carp "output_flush: @{[scalar @{$self->{output_buffer}}]} blobs in queue";
 
   eval {
@@ -751,13 +752,42 @@ sub redirect {
 
   #########
   # - reset all previously output but unflushed content
-  # - push headers down the pipe
-  # - empty header container
+  # - push headers down the pipe, and html redirects
+  # - finish up
   #
   $self->output_reset();
-  $self->output_buffer($self->headers->as_string, "\n");
-  $self->headers->clear();
 
+  Readonly::Scalar my $OVERFLOW => 1024;
+  if(length $self->headers->as_string > $OVERFLOW) { # fudge for apparent buffer overflow with apache+mod_perl (ParseHeaders related?)
+    $self->headers->remove_header('Location');
+    $self->headers->header('Status', HTTP_OK);
+  }
+
+  $self->output_buffer($self->headers->as_string, "\n");
+  $self->output_buffer(<<"EOT");
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+  <html>
+   <head>
+     <meta http-equiv="refresh" content="0;URL='$url'" />
+   </head>
+   <body>
+     <h1>Document Moved</h1>
+     <p>
+       This document has moved <a href="$url">here</a>.
+     </p>
+     <script>
+document.location.href="$url";
+     </script>
+   </body>
+  </html>
+EOT
+
+  #########
+  # clean everything up and terminate
+  #
+  $self->output_flush();
+  $self->headers->clear();
+  $self->output_finished(1);
   return 1;
 }
 

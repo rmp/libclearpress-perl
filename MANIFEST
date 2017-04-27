@@ -96,6 +96,7 @@ t/data/templates/warnings.tt2
 t/decorator/30-decorator.t
 t/dist/critic.t
 t/dist/distribution.t
+t/dist/kwalitee.t
 t/dist/pod.t
 t/dist/podcoverage.t
 t/driver/40-driver-mysql-tables.t
