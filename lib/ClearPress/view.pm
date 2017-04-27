@@ -759,7 +759,7 @@ sub redirect {
 
   Readonly::Scalar my $OVERFLOW => 1024;
   if(length $self->headers->as_string > $OVERFLOW) { # fudge for apparent buffer overflow with apache+mod_perl (ParseHeaders related?)
-    carp qq[warning: header block looks long];
+    carp q[warning: header block looks long];
     $self->headers->remove_header('Location');
     $self->headers->header('Status', HTTP_OK);
   }
