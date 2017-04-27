@@ -1,3 +1,10 @@
+libclearpress-perl (475.3.2) stable; urgency=low
+
+  * uncovered a buffer overflow problem when combined with Apache +
+    mod-perl2, possibly related to PerlOptions +ParseHeaders whereby
+    if the response header block is too large (approx > 1KB) it
+    becomes mangled as it's flushed to the client.
+
 libclearpress-perl (475.2.2) stable; urgency=low
 
   * minor order change when emitting error responses
