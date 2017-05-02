@@ -14,7 +14,7 @@ use Readonly;
 
 __PACKAGE__->mk_accessors(qw(errstr));
 
-our $VERSION = q[475.3.2];
+our $VERSION = q[475.3.4];
 Readonly::Scalar our $CODEMAP => {
                 300 => q[Multiple Choices],
                 301 => q[Moved Permanently],
@@ -93,7 +93,7 @@ sub render {
   delete $util->{tt};
   my $tt      = $self->tt;
   my $content = q[];
-  my $decor   = $self->decor;
+  my $decor   = $self->decorator;
 
 #  carp qq[$self view::error: handling error response];
   if($aspect =~ /(?:ajax|xml|rss|atom)$/smx) {
