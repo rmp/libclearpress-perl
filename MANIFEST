@@ -92,6 +92,8 @@ t/data/templates/derived_read.tt2
 t/data/templates/derived_read_ajax.tt2
 t/data/templates/derived_update.tt2
 t/data/templates/derived_update_xml.tt2
+t/data/templates/touchy_create.tt2
+t/data/templates/touchy_update.tt2
 t/data/templates/view_update.tt2
 t/data/templates/warnings.tt2
 t/decorator/30-decorator.t
@@ -129,10 +131,12 @@ t/lib/t/model/derived_child.pm
 t/lib/t/model/derived_parent.pm
 t/lib/t/model/derived_status.pm
 t/lib/t/model/status.pm
+t/lib/t/model/touchy.pm
 t/lib/t/request.pm
 t/lib/t/util.pm
 t/lib/t/view/derived.pm
 t/lib/t/view/error.pm
+t/lib/t/view/touchy.pm
 t/model/10-model.t
 t/model/deprecated.t
 t/user/admin.pm

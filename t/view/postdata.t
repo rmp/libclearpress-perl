@@ -11,17 +11,15 @@ use lib qw(t/lib);
 use t::request;
 use t::model::derived;
 use t::view::derived;
+use t::view::touchy;
 use JSON;
 
 eval {
   require DBD::SQLite;
-  plan tests => 3;
+  plan tests => 9;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
-
-# update with postdata json
-# update with no payload - last_modified touch
 
 {
   my $util = t::util->new;
@@ -135,4 +133,57 @@ eval {
 		    id_derived => 2
 		   }
 		  ], 'update (id in payload) with json postdata - should create, not update');
+}
+
+{
+  my $util = t::util->new;
+  $util->driver->drop_table('touchy');
+  $util->driver->create_table('touchy',
+			      {
+			       id_touchy => 'primary key',
+			       created   => 'timestamp',
+			       last_modified => 'timestamp',
+			      });
+  my ($id, $created, $last_mod);
+
+  {
+    my $str  = t::request->new({
+				PATH_INFO      => '/touchy',
+				REQUEST_METHOD => 'POST',
+				util           => $util,
+				cgi_params     => {
+						   POSTDATA => JSON->new->encode({}),
+						  },
+			       });
+
+    ($id)       = $str =~ m{^id=(\d+)$}smix;
+    ($created)  = $str =~ m{^created=(\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2})$}smix;
+    ($last_mod) = $str =~ m{^last_modified=(\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2})$}smix;
+
+    like($created,  qr{^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}$}smix, 'created set');
+    like($last_mod, qr{^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}$}smix, 'last_modified set');
+  }
+
+  sleep 1; # sleep >=1 second to ensure last_modified is different
+
+  {
+    my $str  = t::request->new({
+				PATH_INFO      => "/touchy/$id",
+				REQUEST_METHOD => 'POST',
+				util           => $util,
+				cgi_params     => {
+						   POSTDATA => JSON->new->encode({}),
+						  },
+			       });
+    my ($id2, $created2, $last_mod2);
+    ($id2)       = $str =~ m{^id=(\d+)$}smix;
+    ($created2)  = $str =~ m{^created=(\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2})$}smix;
+    ($last_mod2) = $str =~ m{^last_modified=(\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2})$}smix;
+
+    like($created2,  qr{^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}$}smix, 'created set');
+    like($last_mod2, qr{^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}:\d{2}$}smix, 'last_modified set');
+
+    is($created, $created2, 'created timestamp unchanged');
+    isnt($last_mod, $last_mod2, 'last_modified timestamp changed');
+  }
 }
