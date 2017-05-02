@@ -90,6 +90,7 @@ t/data/templates/derived_list_overridden_ajax.tt2
 t/data/templates/derived_list_xml.tt2
 t/data/templates/derived_read.tt2
 t/data/templates/derived_read_ajax.tt2
+t/data/templates/derived_update.tt2
 t/data/templates/derived_update_xml.tt2
 t/data/templates/view_update.tt2
 t/data/templates/warnings.tt2
@@ -140,3 +141,4 @@ t/util/30-util.t
 t/util/singleton.t
 t/view/20-view.t
 t/view/error.t
+t/view/postdata.t
