@@ -23,7 +23,7 @@ use HTTP::Status qw(:constants);
 use JSON;
 use Readonly;
 
-our $VERSION = q[475.3.3];
+our $VERSION = q[475.3.4];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};

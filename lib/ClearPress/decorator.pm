@@ -17,7 +17,7 @@ use base qw(Class::Accessor);
 use Readonly;
 use Carp;
 
-our $VERSION = q[475.3.3];
+our $VERSION = q[475.3.4];
 our $DEFAULTS = {
 		 'meta_content_type' => 'text/html',
 		 'meta_version'      => '0.2',
