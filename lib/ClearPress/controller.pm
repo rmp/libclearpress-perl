@@ -26,23 +26,25 @@ use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
 our $VERSION = q[475.3.4];
-our $CRUD    = {
-		POST   => 'create',
-		GET    => 'read',
-		PUT    => 'update',
-		DELETE => 'delete',
-                HEAD   => 'null',
-                TRACE  => 'null',
+our $CRUD    = { # these map HTTP verbs to $action
+		POST    => 'create',
+		GET     => 'read',
+		PUT     => 'update',
+		DELETE  => 'delete',
+                OPTIONS => 'options',
+                HEAD    => 'null',
+                TRACE   => 'null',
 	       };
-our $REST   = {
-	       create => 'POST',
-	       read   => 'GET',
-	       update => 'PUT|POST',
-	       delete => 'DELETE|POST',
-	       add    => 'GET',
-	       edit   => 'GET',
-	       list   => 'GET',
-               null   => 'HEAD|TRACE'
+our $REST   = { # these assist sanitising $aspect
+	       create  => 'POST',
+	       read    => 'GET',
+	       update  => 'PUT|POST',
+	       delete  => 'DELETE|POST',
+	       add     => 'GET',
+	       edit    => 'GET',
+	       list    => 'GET',
+               options => 'OPTIONS',
+               null    => 'HEAD|TRACE'
 	      };
 
 sub accept_extensions {
@@ -324,6 +326,11 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
     $aspect = $action_extended . ($aspect?"_$aspect":q[]);
   }
 
+  if($method eq 'OPTIONS') {
+    $action = 'options';
+    $aspect = 'options';
+  }
+  
   #########
   # sanity checks
   #
