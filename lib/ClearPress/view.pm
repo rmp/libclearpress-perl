@@ -23,7 +23,7 @@ use HTTP::Status qw(:constants);
 use JSON;
 use Readonly;
 
-our $VERSION = q[475.3.4];
+our $VERSION = q[475.4.0];
 our $DEBUG_OUTPUT   = 0;
 our $DEBUG_L10N     = 0;
 our $TEMPLATE_CACHE = {};
@@ -262,7 +262,7 @@ sub method_name {
 }
 
 sub streamed_aspects {
-  return [];
+  return [qw(options)];
 }
 
 sub streamed {
@@ -310,12 +310,13 @@ sub render {
   # Figure out and call the appropriate action if available
   #
   my $method = $self->method_name;
-  if($method !~ /^(?:add|edit|create|read|update|delete|list)/smx) {
+  if($method !~ /^(?:add|edit|create|read|update|delete|list|options)/smx) {
     croak qq[Illegal method: $method];
   }
 
   if($self->can($method)) {
-    if($aspect =~ /_(?:jpg|png|gif|svg|svgz)/smx) {
+    if($aspect eq 'options' ||
+       $aspect =~ /_(?:jpg|png|gif|svg|svgz)/smx) {
       return $self->$method();
     }
 
@@ -545,6 +546,10 @@ sub add {
 sub edit {
   my $self = shift;
   return $self->_populate_from_cgi;
+}
+
+sub options {
+  return 1;
 }
 
 sub list {
