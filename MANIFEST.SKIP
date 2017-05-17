@@ -75,4 +75,5 @@ META.yml
 META.json
 tmp/
 libclearpress-.*deb
+ClearPress.*gz
 t/headers/data/headers.sql3
