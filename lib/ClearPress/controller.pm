@@ -330,7 +330,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
     $action = 'options';
     $aspect = 'options';
   }
-  
+
   #########
   # sanity checks
   #
