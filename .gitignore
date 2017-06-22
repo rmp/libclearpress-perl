@@ -22,3 +22,4 @@ ClearPress*gz
 tmp/
 libclearpress*deb
 t/headers/data/headers.sql3 
+nytprof*
