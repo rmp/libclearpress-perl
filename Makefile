@@ -26,13 +26,18 @@ manifest: setup
 clean:	setup
 	./Build clean
 	touch tmp
-	rm -rf build.tap MYMETA.yml MYMETA.json _build Build rpmbuild spec tmp *rpm *deb *tar.gz test.db MANIFEST.bak
+	rm -rf build.tap MYMETA.yml MYMETA.json _build Build rpmbuild spec tmp *rpm *deb *tar.gz test.db MANIFEST.bak nytprof*
 
 test:	setup
 	TEST_AUTHOR=1 ./Build test verbose=1
 
 cover:	setup
 	./Build testcover verbose=1
+
+nytcover: setup
+	TEST_AUTHOR=1 perl -d:NYTProf Build test
+	nytprofmerge nytprof.out*
+	nytprofhtml --file nytprof-merged.out
 
 install:	setup
 	./Build install
