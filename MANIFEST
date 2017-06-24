@@ -133,14 +133,14 @@ t/lib/t/model/derived_status.pm
 t/lib/t/model/status.pm
 t/lib/t/model/touchy.pm
 t/lib/t/request.pm
+t/lib/t/user/admin.pm
+t/lib/t/user/basic.pm
 t/lib/t/util.pm
 t/lib/t/view/derived.pm
 t/lib/t/view/error.pm
 t/lib/t/view/touchy.pm
 t/model/10-model.t
 t/model/deprecated.t
-t/user/admin.pm
-t/user/basic.pm
 t/util/30-util.t
 t/util/singleton.t
 t/view/20-view.t
