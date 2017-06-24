@@ -1,3 +1,7 @@
+libclearpress-perl (475.5.0) stable; urgency=low
+
+  * experimental OPTIONS support
+
 libclearpress-perl (475.3.4) stable; urgency=low
 
   * applied tests for JSON-based POSTDATA (curl -d instead of curl -F)
