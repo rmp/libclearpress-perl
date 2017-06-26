@@ -20,7 +20,7 @@ use English qw(-no_match_vars);
 use ClearPress::driver;
 use CGI;
 use IO::Capture::Stderr;
-use Data:UUID;
+use Data::UUID;
 
 our $VERSION = q[476.0.0];
 our $DEFAULT_TRANSACTIONS = 1;
