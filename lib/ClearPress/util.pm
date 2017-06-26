@@ -20,6 +20,7 @@ use English qw(-no_match_vars);
 use ClearPress::driver;
 use CGI;
 use IO::Capture::Stderr;
+use Data:UUID;
 
 our $VERSION = q[476.0.0];
 our $DEFAULT_TRANSACTIONS = 1;
@@ -29,7 +30,7 @@ my  $INSTANCES            = {}; # per-process table of singletons (nasty!)
 __PACKAGE__->mk_accessors(qw(transactions username requestor profiler session));
 
 BEGIN {
-  use constant MP2 => eval { require Apache2::RequestUtil; Apache2::RequestUtil->request && $Apache2::RequestUtil::VERSION > 1.99 }; ## no critic (ProhibitConstantPragma, RequireCheckingReturnValueOfEval)
+  use constant MP2 => eval { require Apache2::RequestUtil; Apache2::RequestUtil->can('request') && $Apache2::RequestUtil::VERSION > 1.99 }; ## no critic (ProhibitConstantPragma, RequireCheckingReturnValueOfEval)
 
   if(MP2) {
     carp q[Using request-based singletons [mod_perl2 found]];
@@ -38,14 +39,12 @@ BEGIN {
   }
 }
 
-sub new {
-  my ($class, $ref) = @_;
-
-  my $self = {};
-
+sub _singleton_key {
+  my ($self) = @_;
   #########
   # classic mode
   #
+  my $class         = ref $self || $self;
   my $singleton_key = $class;
 
   #########
@@ -58,11 +57,24 @@ sub new {
     if(!$singleton_key) {
       $singleton_key = Data::UUID->new->create_str;
       $request->pnotes($class => $singleton_key);
+      carp qq[new util singleton = $singleton_key];
+    } else {
+      carp qq[reuse util singleton = $singleton_key];
     }
+
   }
 
-  if(exists $INSTANCES->{$class}) {
-    $self = $INSTANCES->{$class};
+  return $singleton_key;
+}
+
+sub new {
+  my ($class, $ref) = @_;
+
+  my $self = {};
+  my $singleton_key = $class->_singleton_key;
+
+  if(exists $INSTANCES->{$singleton_key}) {
+    $self = $INSTANCES->{$singleton_key};
   }
 
   if($ref && ref $ref eq 'HASH') {
@@ -75,9 +87,9 @@ sub new {
     $self->{transactions} = $DEFAULT_TRANSACTIONS;
   }
 
-  $INSTANCES->{$class} = bless $self, $class;
+  $INSTANCES->{$singleton_key} = bless $self, $class;
 
-  return $INSTANCES->{$class};
+  return $INSTANCES->{$singleton_key};
 }
 
 sub cgi {
@@ -191,9 +203,9 @@ sub cleanup {
   # carry over any stateful information to the next request - CGI,
   # DBH, TT and anything else cached in data members.
   #
-  my $class = ref $self || $self;
+  my $singleton_key = $self->_singleton_key;
 
-  delete $INSTANCES->{$class};
+  delete $INSTANCES->{$singleton_key};
 
   if(exists $self->{dbh}) {
     $self->{dbh}->disconnect();
@@ -399,6 +411,8 @@ $Revision: 470 $
 =item Config::IniFiles
 
 =item Carp
+
+=item Data::UUID
 
 =item POSIX
 
