@@ -49,6 +49,7 @@ sub _singleton_key {
 
   #########
   # per-request mode - should support mpm_worker & mpm_event
+  # Could this be done using $ENV{request-id} ||= uuid->new in regular CGI mode?
   #
   if(MP2) {
     my $request    = Apache2::RequestUtil->request;
@@ -61,7 +62,6 @@ sub _singleton_key {
     } else {
       carp qq[reuse util singleton = $singleton_key];
     }
-
   }
 
   return $singleton_key;
