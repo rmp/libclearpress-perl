@@ -21,17 +21,45 @@ use ClearPress::driver;
 use CGI;
 use IO::Capture::Stderr;
 
-our $VERSION = q[475.4.0];
+our $VERSION = q[476.0.0];
 our $DEFAULT_TRANSACTIONS = 1;
 our $DEFAULT_DRIVER       = 'mysql';
-my  $INSTANCES = {};
+my  $INSTANCES            = {}; # per-process table of singletons (nasty!)
 
 __PACKAGE__->mk_accessors(qw(transactions username requestor profiler session));
+
+BEGIN {
+  use constant MP2 => eval { require Apache2::RequestUtil; Apache2::RequestUtil->request && $Apache2::RequestUtil::VERSION > 1.99 }; ## no critic (ProhibitConstantPragma, RequireCheckingReturnValueOfEval)
+
+  if(MP2) {
+    carp q[Using request-based singletons [mod_perl2 found]];
+  } else {
+    carp q[Using process-based singletons [mod_perl2 not found]];
+  }
+}
 
 sub new {
   my ($class, $ref) = @_;
 
   my $self = {};
+
+  #########
+  # classic mode
+  #
+  my $singleton_key = $class;
+
+  #########
+  # per-request mode - should support mpm_worker & mpm_event
+  #
+  if(MP2) {
+    my $request    = Apache2::RequestUtil->request;
+    $singleton_key = $request->pnotes($class);
+
+    if(!$singleton_key) {
+      $singleton_key = Data::UUID->new->create_str;
+      $request->pnotes($class => $singleton_key);
+    }
+  }
 
   if(exists $INSTANCES->{$class}) {
     $self = $INSTANCES->{$class};

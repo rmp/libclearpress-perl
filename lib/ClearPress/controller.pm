@@ -25,7 +25,7 @@ use CGI;
 use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
-our $VERSION = q[475.3.4];
+our $VERSION = q[476.0.0];
 our $CRUD    = { # these map HTTP verbs to $action
 		POST    => 'create',
 		GET     => 'read',

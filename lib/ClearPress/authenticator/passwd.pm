@@ -13,7 +13,7 @@ use warnings;
 use base qw(ClearPress::authenticator);
 use Carp;
 
-our $VERSION = q[475.4.0];
+our $VERSION = q[476.0.0];
 
 sub authen_credentials {
   my ($self, $ref) = @_;
