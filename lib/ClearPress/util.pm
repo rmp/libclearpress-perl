@@ -23,6 +23,7 @@ use IO::Capture::Stderr;
 use Data::UUID;
 
 our $VERSION = q[476.0.0];
+our $DEBUG_UTIL           = 0;
 our $DEFAULT_TRANSACTIONS = 1;
 our $DEFAULT_DRIVER       = 'mysql';
 my  $INSTANCES            = {}; # per-process table of singletons (nasty!)
@@ -58,9 +59,9 @@ sub _singleton_key {
     if(!$singleton_key) {
       $singleton_key = Data::UUID->new->create_str;
       $request->pnotes($class => $singleton_key);
-      carp qq[new util singleton = $singleton_key];
+      $DEBUG_UTIL and carp qq[new util singleton = $singleton_key];
     } else {
-      carp qq[reuse util singleton = $singleton_key];
+      $DEBUG_UTIL and carp qq[reuse util singleton = $singleton_key];
     }
   }
 
