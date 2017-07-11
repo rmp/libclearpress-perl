@@ -66,6 +66,7 @@ sub new { ## no critic (Complexity)
   $self->{content_type} ||= 'text/html';
 
   $self->{charset}      ||= 'UTF-8';
+  $self->{headers}      ||= HTTP::Headers->new;
 
   return $self;
 }
@@ -1042,6 +1043,12 @@ e.g.
 =head2 delete_csv - default passthrough to delete for csv service
 
 =head2 init - post-constructor initialisation hook for subclasses
+
+=head2 headers - an HTTP::Headers object for responses
+
+  my $oHeaders = $oView->headers;
+
+  $oView->headers->header('Status', 500); # usually symbolic named values from HTTP::Status
 
 =head2 process_template - process a template with standard parameters
 
