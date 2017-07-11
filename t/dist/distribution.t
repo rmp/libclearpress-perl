@@ -12,7 +12,8 @@ use strict;
 use warnings;
 use Test::More;
 use English qw(-no_match_vars);
-use lib qw(t); use Net::LDAP;
+use lib qw(t/lib);
+use Net::LDAP;
 
 our $VERSION = q[475.5.0];
 
