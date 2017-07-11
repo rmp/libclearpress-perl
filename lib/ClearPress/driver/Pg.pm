@@ -1,11 +1,6 @@
 #########
-# Author:        rmp
-# Maintainer:    $Author: zerojinx $
-# Created:       2006-10-31
-# Last Modified: $Date: 2015-09-21 10:19:13 +0100 (Mon, 21 Sep 2015) $
-# Id:            $Id: Pg.pm 470 2015-09-21 09:19:13Z zerojinx $
-# Source:        $Source$
-# $HeadURL: svn+ssh://zerojinx@svn.code.sf.net/p/clearpress/code/trunk/lib/ClearPress/driver/Pg.pm $
+# Author: rmp
+# Created: 2006-10-31
 #
 package ClearPress::driver::Pg;
 use strict;

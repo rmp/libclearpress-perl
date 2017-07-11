@@ -1,13 +1,7 @@
 # -*- mode: cperl; tab-width: 8; indent-tabs-mode: nil; basic-offset: 2 -*-
 # vim:ts=8:sw=2:et:sta:sts=2
 #########
-# Author:        rmp
-# Maintainer:    $Author: zerojinx $
-# Created:       2006-10-31
-# Last Modified: $Date: 2015-09-21 10:19:13 +0100 (Mon, 21 Sep 2015) $
-# Source:        $Source: /cvsroot/clearpress/clearpress/lib/ClearPress/util.pm,v $
-# Id:            $Id: util.pm 470 2015-09-21 09:19:13Z zerojinx $
-# $HeadURL: svn+ssh://zerojinx@svn.code.sf.net/p/clearpress/code/trunk/lib/ClearPress/util.pm $
+# Author: rmp
 #
 package ClearPress::util;
 use strict;
