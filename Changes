@@ -1,3 +1,8 @@
+libclearpress-perl (476.1.1) stable; urgency=low
+
+  * Do not overwrite the status code if it's already been set during
+    model + view instantiation
+
 libclearpress-perl (476.1.0) stable; urgency=low
 
   * Correction to per-request "singleton" util object management to
