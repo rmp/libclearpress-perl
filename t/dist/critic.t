@@ -9,7 +9,7 @@ use warnings;
 use Test::More;
 use English qw(-no_match_vars);
 
-our $VERSION = q[476.0.0];
+our $VERSION = q[476.1.0];
 
 if ( not $ENV{TEST_AUTHOR} ) {
   my $msg = 'Author test.  Set $ENV{TEST_AUTHOR} to a true value to run.';
