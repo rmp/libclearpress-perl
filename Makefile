@@ -1,5 +1,5 @@
-MAJOR    ?= 475
-MINOR    ?= 5
+MAJOR    ?= 476
+MINOR    ?= 0
 SUB      ?= 0
 PATCH    ?= 1
 MD5SUM    = md5sum
@@ -51,7 +51,7 @@ deb:	manifest
 	rm -rf tmp
 	mkdir -p tmp/usr/share/perl5
 	cp -pR deb-src/* tmp/
-	cp tmp/DEBIAN/control.tt2 tmp/DEBIAN/control
+	cp tmp/DEBIAN/control.tmpl tmp/DEBIAN/control
 	$(SEDI) "s/MAJOR/$(MAJOR)/g" tmp/DEBIAN/control
 	$(SEDI) "s/MINOR/$(MINOR)/g" tmp/DEBIAN/control
 	$(SEDI) "s/SUB/$(SUB)/g"     tmp/DEBIAN/control

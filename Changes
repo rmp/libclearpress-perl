@@ -1,3 +1,8 @@
+libclearpress-perl (476.0.0) stable; urgency=low
+
+  * Correction to per-request "singleton" util object management to
+    support execution under Apache mpm_worker and mpm_event.
+
 libclearpress-perl (475.5.0) stable; urgency=low
 
   * experimental OPTIONS support

@@ -5,7 +5,7 @@ cgi-bin/login
 cgi-bin/logout
 Changes
 deb-src/DEBIAN/changelog
-deb-src/DEBIAN/control.tt2
+deb-src/DEBIAN/control.tmpl
 examples/GrandKids/bin/GrandKids
 examples/GrandKids/cgi-bin/GrandKids
 examples/GrandKids/config.layout

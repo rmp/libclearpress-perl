@@ -20,7 +20,7 @@ use JSON;
 
 Readonly::Array our @EXPORT_OK => qw(is_xml is_json is_xls is_txt);
 
-our $VERSION = q[475.5.0];
+our $VERSION = q[476.0.0];
 
 sub new {
   my ($class, $ref_in) = @_;
