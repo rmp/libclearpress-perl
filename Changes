@@ -1,3 +1,7 @@
+libclearpress-perl (476.2.1) stable; urgency=low
+
+  * ENTITY_HREF template value understands X-Forwarded-Proto header.
+
 libclearpress-perl (476.1.1) stable; urgency=low
 
   * Do not overwrite the status code if it's already been set during

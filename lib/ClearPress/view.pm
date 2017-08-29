@@ -381,11 +381,11 @@ sub process_template { ## no critic (Complexity)
   $entity       ||= q[];
   my $script_name = $ENV{SCRIPT_NAME} || q[];
   my ($xfh, $xfp) = ($ENV{HTTP_X_FORWARDED_HOST}, $ENV{HTTP_X_FORWARDED_PORT});
-  my $http_host   = ($xfh ? $xfh : $ENV{HTTP_HOST})   || q[localhost];
-  my $http_port   = ($xfh ? $xfp : $ENV{HTTP_PORT})   || q[];
-  my $https       = $ENV{HTTPS}?q[https]:q[http];
+  my $http_host   = ($xfh ? $xfh : $ENV{HTTP_HOST}) || q[localhost];
+  my $http_port   = ($xfh ? $xfp : $ENV{HTTP_PORT}) || q[];
+  my $http_proto  = $ENV{HTTP_X_FORWARDED_PROTO}    || $ENV{HTTPS}?q[https]:q[http];
   my $href        = sprintf q[%s://%s%s%s%s],
-			    $https,
+			    $http_proto,
 			    $http_host,
 			    $http_port?":$http_port":q[],
 			    $script_name,
@@ -405,7 +405,7 @@ sub process_template { ## no critic (Complexity)
 		  SCRIPT_NAME => $script_name,
 		  HTTP_HOST   => $http_host,
 		  HTTP_PORT   => $http_port,
-		  HTTPS       => $https,
+		  HTTPS       => $http_proto,
 		  SCRIPT_HREF => $href,
 		  ENTITY_HREF => "$href$entity",
 		  now         => (strftime '%Y-%m-%dT%H:%M:%S', localtime),
