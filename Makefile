@@ -1,5 +1,5 @@
 MAJOR    ?= 476
-MINOR    ?= 1
+MINOR    ?= 2
 SUB      ?= 1
 PATCH    ?= 1
 MD5SUM    = md5sum
