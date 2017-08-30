@@ -1,4 +1,4 @@
-libclearpress-perl (476.2.1) stable; urgency=low
+libclearpress-perl (476.3.1) stable; urgency=low
 
   * Support additional options for dsn connect (mysql only), primarily
     for RDS/IAM support.
