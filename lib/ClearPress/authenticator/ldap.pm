@@ -11,7 +11,7 @@ use Readonly;
 use Carp;
 use Net::LDAP;
 
-our $VERSION = q[476.3.1];
+our $VERSION = q[476.4.1];
 
 Readonly::Scalar our $DEFAULT_SERVER    => 'ldaps://ldap.local:636';
 Readonly::Scalar our $DEFAULT_AD_DOMAIN => 'WORKGROUP';
