@@ -1,3 +1,8 @@
+libclearpress-perl (476.4.1) stable; urgency=low
+
+  * Disable view redirect header response overflow handling by default.
+    Re-enable by setting $ClearPress::view::TRAP_REDIR_OVERFLOW = 1
+
 libclearpress-perl (476.3.1) stable; urgency=low
 
   * Support additional options for dsn connect (mysql only), primarily
