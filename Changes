@@ -1,3 +1,12 @@
+libclearpress-perl (476.4.2) stable; urgency=low
+
+  * Permit configuration of default language in
+    decorator::lang. Defaults to 'en'.
+    Also sets Content-Language response-header.
+
+    More information from: 
+    https://www.w3.org/International/questions/qa-html-language-declarations
+
 libclearpress-perl (476.4.1) stable; urgency=low
 
   * Disable view redirect header response overflow handling by default.
