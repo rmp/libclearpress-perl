@@ -425,6 +425,14 @@ sub decorator {
     #
     if($headers) {
       $self->{decorator} = $decor;
+
+      #########
+      # no obvious right place for this
+      #
+      my $lang = $decor->lang;
+      if(scalar @{$lang}) {
+        $headers->header('Content-Language', join q[,], @{$lang});
+      }
     }
   }
 
