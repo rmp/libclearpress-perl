@@ -425,14 +425,6 @@ sub decorator {
     #
     if($headers) {
       $self->{decorator} = $decor;
-
-      #########
-      # no obvious right place for this
-      #
-      my $lang = $decor->lang;
-      if(scalar @{$lang}) {
-        $headers->header('Content-Language', join q[,], @{$lang});
-      }
     }
   }
 
@@ -456,6 +448,14 @@ sub handler {
   my $namespace = $self->namespace($util);
 
   $headers->header('Status', HTTP_OK);
+
+  #########
+  # no obvious right place for this
+  #
+  my $lang = $decorator->lang;
+  if($lang && scalar @{$lang}) {
+    $headers->header('Content-Language', join q[,], @{$lang});
+  }
 
   my ($action, $entity, $aspect, $id, $process_request_error);
   eval {

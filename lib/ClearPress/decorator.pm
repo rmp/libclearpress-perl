@@ -90,7 +90,7 @@ sub cookie {
   my ($self, @cookies) = @_;
 
   if(scalar @cookies) {
-    $self->{'cookie'} = \@cookies;
+    $self->{cookie} = \@cookies;
   }
 
   return @{$self->{cookie}||[]};
