@@ -448,6 +448,7 @@ sub handler {
   my $namespace = $self->namespace($util);
 
   $headers->header('Status', HTTP_OK);
+  $headers->header('X-Generator', 'ClearPress');
 
   #########
   # no obvious right place for this
