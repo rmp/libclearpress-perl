@@ -14,7 +14,7 @@ use Readonly;
 
 __PACKAGE__->mk_accessors(qw(errstr));
 
-our $VERSION = q[476.4.3];
+our $VERSION = q[476.4.4];
 
 Readonly::Scalar our $CODEMAP => {
                 300 => q[Multiple Choices],

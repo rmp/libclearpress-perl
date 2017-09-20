@@ -16,7 +16,7 @@ use Lingua::EN::PluralToSingular qw(to_singular);
 use POSIX qw(strftime);
 use Readonly;
 
-our $VERSION = q[476.4.3];
+our $VERSION = q[476.4.4];
 
 Readonly::Scalar our $DBI_CACHE_OVERWRITE => 3;
 
