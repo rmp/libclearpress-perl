@@ -1,3 +1,8 @@
+libclearpress-perl (476.4.3) stable; urgency=low
+
+  * $ClearPress::view::TRAP_REDIR_OVERFLOW non-zero value now
+    specifies cut-off in bytes (default off)
+
 libclearpress-perl (476.4.2) stable; urgency=low
 
   * Permit configuration of default language in
