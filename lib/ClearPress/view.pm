@@ -30,7 +30,7 @@ our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
 our $TEMPLATE_CACHE      = {};
 our $LEXICON_CACHE       = {};
-our $TRAP_REDIR_OVERFLOW = 0;
+our $TRAP_REDIR_OVERFLOW = 0; # set to non-zero value to cut-off at that many bytes
 
 __PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator headers));
 
@@ -767,8 +767,7 @@ sub redirect {
   $self->output_reset();
 
   if($TRAP_REDIR_OVERFLOW) {
-    Readonly::Scalar my $OVERFLOW => 1024;
-    if(length $self->headers->as_string > $OVERFLOW) { # fudge for apparent buffer overflow with apache+mod_perl (ParseHeaders related?)
+    if(length $self->headers->as_string > $TRAP_REDIR_OVERFLOW) { # fudge for apparent buffer overflow with apache+mod_perl (ParseHeaders related?)
       carp q[warning: header block looks long];
       $self->headers->remove_header('Location');
       $self->headers->header('Status', HTTP_OK);
@@ -785,7 +784,7 @@ sub redirect {
   $self->headers->clear();
 
   ########
-  # Note: This ought to correspond to content-type, but doesn't!
+  # Warning: This ought to correspond to content-type, but doesn't!
   #
   return <<"EOT"
    <p>This document has moved <a href="$url">here</a>.</p>
@@ -1125,7 +1124,7 @@ e.g.
 
  Set $ClearPress::view::DEBUG_OUTPUT = 1 to report output buffer operations.
 
- Set $ClearPress::view::TRAP_REDIR_OVERFLOW = 1 to enable experimental redirect header overflow handling
+ Set $ClearPress::view::TRAP_REDIR_OVERFLOW = 1024 to enable experimental redirect header overflow handling after that many bytes
 
 =head1 DEPENDENCIES
 
