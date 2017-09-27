@@ -10,7 +10,7 @@ use base qw(ClearPress::decorator Exporter);
 use ClearPress::authenticator::session;
 use Readonly;
 
-our $VERSION = q[476.4.2];
+our $VERSION = q[476.4.3];
 
 Readonly::Scalar our $DOMAIN      => 'mysite.com';
 Readonly::Scalar our $AUTH_COOKIE => 'mysite_sso';
