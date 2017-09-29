@@ -26,6 +26,7 @@ use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
 our $VERSION = q[477.1.1];
+
 our $CRUD    = { # these map HTTP verbs to $action
 		POST    => 'create',
 		GET     => 'read',
@@ -519,9 +520,9 @@ sub handler {
   $headers->header('Content-Type', $content_type);
 
   if($decor) {
-    if($content_type =~ /text/smx && $charset =~ /utf-?8/smix) {
-      binmode STDOUT, q[:encoding(UTF-8)]; # is this useful? If so, should it be less conditional?
-    }
+#    if($content_type =~ /text/smx && $charset =~ /utf-?8/smix) {
+#      binmode STDOUT, q[:encoding(UTF-8)]; # is this useful? If so, should it be less conditional?
+#    }
 
     #########
     # decorated header

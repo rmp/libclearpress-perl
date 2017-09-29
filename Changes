@@ -2,6 +2,10 @@ libclearpress-perl (477.1.1) stable; urgency=low
 
   * Improved systematic OPTIONS request/response support
 
+libclearpress-perl (476.4.4) stable; urgency=low
+
+  * Do not mark stdout as a binary/UTF-8 stream
+
 libclearpress-perl (476.4.3) stable; urgency=low
 
   * $ClearPress::view::TRAP_REDIR_OVERFLOW non-zero value now
