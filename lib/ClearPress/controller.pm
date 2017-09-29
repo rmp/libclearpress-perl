@@ -25,7 +25,7 @@ use CGI;
 use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
-our $VERSION = q[476.4.3];
+our $VERSION = q[477.1.1];
 our $CRUD    = { # these map HTTP verbs to $action
 		POST    => 'create',
 		GET     => 'read',
@@ -315,7 +315,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
     }
   }
 
-  if($aspect !~ /^(?:create|read|update|delete|add|list|edit)/smx) {
+  if($aspect !~ /^(?:create|read|update|delete|add|list|edit|options)/smx) {
     my $action_extended = $action;
     if(!$id) {
       $action_extended = {
@@ -326,10 +326,10 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
     $aspect = $action_extended . ($aspect?"_$aspect":q[]);
   }
 
-  if($method eq 'OPTIONS') {
-    $action = 'options';
-    $aspect = 'options';
-  }
+#  if($method eq 'OPTIONS') {
+#    $action = 'options';
+#    $aspect = 'options';
+#  }
 
   #########
   # sanity checks
