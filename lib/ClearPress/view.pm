@@ -24,7 +24,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[476.4.4];
+our $VERSION = q[477.1.2];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
@@ -798,7 +798,7 @@ EOT
 BEGIN {
   no strict 'refs'; ## no critic (ProhibitNoStrict)
   for my $ext (qw(xml ajax json csv)) {
-    for my $method (qw(create list read update delete)) {
+    for my $method (qw(create list read update delete options)) {
       my $ns = sprintf q[%s_%s], $method, $ext;
       *{$ns} = sub { my $self = shift; return $self->$method; };
     }
@@ -1048,6 +1048,14 @@ e.g.
 =head2 update_csv - default passthrough to update for csv service
 
 =head2 delete_csv - default passthrough to delete for csv service
+
+=head2 options_ajax - default passthrough to options for customised options calls
+
+=head2 options_csv - default passthrough to options for customised options calls
+
+=head2 options_json - default passthrough to options for customised options calls
+
+=head2 options_xml - default passthrough to options for customised options calls
 
 =head2 init - post-constructor initialisation hook for subclasses
 
