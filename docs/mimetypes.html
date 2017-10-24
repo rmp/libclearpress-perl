@@ -1,4 +1,4 @@
-<!--#include virtual="header.html"-->
+{% include header.html %}
 <p>
  Let's say ClearPress doesn't support our favourite format
  out-of-the-box. YAML for example - pretty common really but it hasn't
@@ -67,5 +67,4 @@ So far what we've set up will allow us to access URLs like http://example.com/ap
 [%- YAML.dump(clean) %]
 </code></pre></p>
 
-<!--#include virtual="footer.html"-->
-
+{% include footer.html %}
