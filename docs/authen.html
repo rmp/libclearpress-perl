@@ -54,7 +54,8 @@
 
 <fieldset>
  <legend>login</legend>
- <code>#!/usr/bin/env perl -T
+ {% highlight perl %}
+#!/usr/bin/env perl -T
 use strict;
 use warnings;
 use myapp::decor qw($AUTH_COOKIE $TOPSECRETKEY);
@@ -152,12 +153,13 @@ sub login_form {
 &lt;/fieldset&gt;
 EOT
 }
- </code>
+{% endhighlight %}
 </fieldset>
 
 <fieldset>
  <legend>logout</legend>
- <code>#!/usr/bin/perl -T
+ {% highlight perl %}
+#!/usr/bin/perl -T
 use strict;
 use warnings;
 use myapp::decor qw($AUTH_COOKIE);
@@ -174,13 +176,14 @@ print qq[Set-Cookie: $cookie\n];
 print $decor-&gt;header();
 print q[&lt;h2&gt;Thanks for visiting, come again soon!&lt;/h2&gt;];
 print $decor-&gt;footer();
- </code>
+{% endhighlight %}
 </fieldset>
 
 <fieldset>
  <legend>myapp/decor.pm</legend>
  <p>Strictly this should inherit from authdecor.pm but at the time of writing it's not quite ready yet</p>
- <code>package myapp::decor;
+ {% highlight perl %}
+package myapp::decor;
 use strict;
 use warnings;
 use base qw(Exporter ClearPress::decorator);
@@ -226,12 +229,13 @@ sub username {
   return $ref-&gt;{username};
 }
 1;
- </code>
+ {% endhighlight %}
 </fieldset>
 
 <fieldset>
  <legend>myapp/model/user.pm</legend>
- <code>package myapp::model::user;
+ {% highlight perl %}
+package myapp::model::user;
 use strict;
 use warnings;
 use base qw(ClearPress::model);
@@ -249,15 +253,17 @@ sub secondary_key {
   return 'username';
 }
 1;
- </code>
+ {% endhighlight %}
 </fieldset>
+
 <fieldset>
  <legend>myapp/controller.pm (partial)</legend>
 
  <p>There can often be many 'use' statements at the top of the
  controller.pm - omitted here for clarity</p>
 
- <code>package myapp::controller;
+ {% highlight perl %}
+package myapp::controller;
 use strict;
 use warnings;
 use base qw(ClearPress::controller);
@@ -277,7 +283,7 @@ sub decorator {
 }
 
 1;
- </code>
+ {% endhighlight %}
 </fieldset>
 
 <h3>Caveats</h3>
