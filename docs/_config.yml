@@ -1,1 +1,5 @@
 theme: jekyll-theme-minimal
+title: ClearPress Framework
+description: A Simple Perl MVC Framework
+show_downloads: true
+google_analytics: UA-815452-5
