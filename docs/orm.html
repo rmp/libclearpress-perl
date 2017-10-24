@@ -26,7 +26,7 @@
 <p>
  Fields can be reflected in automatic get/set accessors courtesy of
  Class::Accessor. Most data models come with this near their head:
- <code>__PACKAGE__->mk_accessors(fields())</code> which uses the array
+ {% highlight perl %}__PACKAGE__->mk_accessors(fields()){% endhighlight %} which uses the array
  from sub fields() { } to construct the accessors.
 </p>
 
@@ -36,15 +36,15 @@
  compile- time). It relies on the list of fields always reflecting
  what's in the database. For example:
 
- <code>sub fields {
+ {% highlight perl %}sub fields {
  return qw(id_child name dob id_family);
-}</code>
+}{% endhighlight %}
 </p>
 
 <h3>Creating stuff</h3>
 <p>
  Here's our data model:
- <code>package Grandkids::model::kid;
+ {% highlight perl %}package Grandkids::model::kid;
 use strict;
 use warnings;
 use base qw(ClearPress::model);
@@ -56,33 +56,33 @@ sub fields {
 }
 
 1;
-</code>
+{% endhighlight %}
 
  which represents a database table:
-<code>create table kid(
+{% highlight sql %}create table kid(
  id_kid bigint unsigned primary key auto_increment not null,
  name char(128) default '' not null,
  dob datetime not null,
  id_family bigint unsigned
-);</code>
+);{% endhighlight %}
 
  and here's how we could use it to add a new entry in the database:
-<code>use Grandkids::model::kid;
+{% highlight perl %}use Grandkids::model::kid;
 my $oKid = Grandkids::model::kid->new();
 $oKid->name('Bob');
 $oKid->id_family(1);
 $oKid->dob('2009-02-10 10:00:00');
 
-$oKid->create or die;</code>
+$oKid->create or die;{% endhighlight %}
 
  Using accessors to set all the values is unwieldy so we can also do it during construction:
-<code>my $oKid = Grandkids::model::kid->new({
+{% highlight perl %}my $oKid = Grandkids::model::kid->new({
  name      => 'Bob',
  id_family => 1,
  dob       => '2009-02-10 10:00:00',
 });
 
-$oKid->create or die;</code>
+$oKid->create or die;{% endhighlight %}
 
  Notice that we didn't add an id_kid to either of these, because we
  want our database to allocate them for us. id_kid is the first field
@@ -103,12 +103,12 @@ $oKid->create or die;</code>
 <h4>List</h4>
 <p>
  To activate the basic list method (list everything) we add this to
- the top of the class <code>__PACKAGE__->has_all()</code> which adds a
+ the top of the class {% highlight perl %}__PACKAGE__->has_all(){% endhighlight %} which adds a
  pluralised accessor (in this case <i>kids</i>) returning an array
  reference of all kid objects from the database. This can now be used
  like so:
 
- <code> my $oRootKid = Grandkids::model::kid->new(); # note no id required
+ {% highlight perl %} my $oRootKid = Grandkids::model::kid->new(); # note no id required
  my $arKids   = $oRootKid->kids();
  for my $oKid (@{$arKids}) {
   printf q[%d %s %s %d\n],
@@ -116,7 +116,7 @@ $oKid->create or die;</code>
          $oKid->name,
          $oKid->dob,
          $oKid->id_family;
- }</code>
+ }{% endhighlight %}
 </p>
 
 <h4>Read</h4>
@@ -124,12 +124,12 @@ $oKid->create or die;</code>
  To read a specific entity given its id (primary key) we can specify
  it in the constructor:
 
- <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
+ {% highlight perl %}my $oKid = Grandkids::model::kid->new({id_kid=>1});
  printf q[%d %s %s %d\n],
         $oKid->id_kid,
         $oKid->name,
         $oKid->dob,
-        $oKid->id_family;</code>
+        $oKid->id_family;{% endhighlight %}
 </p>
 
 <h3>Updating stuff</h3>
@@ -137,9 +137,9 @@ $oKid->create or die;</code>
  To modify an existing entity we load it with its primary key, add the
  value to change then ask it to update:
 
- <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
+ {% highlight perl %}my $oKid = Grandkids::model::kid->new({id_kid=>1});
 $oKid->name('Billy');
-$oKid->update or die;</code>
+$oKid->update or die;{% endhighlight %}
 
  If the row in the database is heavy (e.g. contains a large text field
  or blob) you don't need to worry. ClearPress::model tries to be lazy
@@ -153,8 +153,8 @@ $oKid->update or die;</code>
  Deleting entries from the database is easy. Read with an entity's
  primary key, then call delete:
 
- <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
-$oKid->delete or die;</code>
+ {% highlight perl %}my $oKid = Grandkids::model::kid->new({id_kid=>1});
+$oKid->delete or die;{% endhighlight %}
 </p>
 
 {% include footer.html %}
