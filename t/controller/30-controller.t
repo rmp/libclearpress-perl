@@ -8,7 +8,7 @@ use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 97;
+  plan tests => 109;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
@@ -21,6 +21,7 @@ use_ok($CTRL);
 
 my $util = t::util->new();
 my $ajax = { HTTP_X_REQUESTED_WITH => 'XmlHttpRequest' };
+my $json = { HTTP_CONTENT_TYPE     => 'application/json' };
 my $T = [
 	 ['GET', '/',                                 '', undef, 'read',  'example', 'list', 0], #default_view
 	 ['GET', '/thing/method',                     '', undef, 'read',  'thing', 'read', 'method'],
@@ -115,7 +116,23 @@ my $T = [
 	 ['OPTIONS', '/testmap/test.xml',             '', undef, 'options', 'testmap', 'options_test_xml',            0],
          ['OPTIONS', '/thing/valid_flowcell/12.js',   '', $ajax, 'options', 'thing',   'options_valid_flowcell_json', 12],
          ['OPTIONS', '/thing/valid_flowcell_json/12', '', $ajax, 'options', 'thing',   'options_valid_flowcell_json', 12],
-	];
+
+         # interesting compound queries. Apache can use the "AllowEncodedSlashes On" directive
+	 ['GET',  '/thing/released/cluster/foo',        '', undef, 'read',   'thing', 'read_released_cluster', 'foo'],
+	 ['GET',  '/thing/released/cluster%2Ffoo',      '', undef, 'read',   'thing', 'read_released', 'cluster/foo'],
+	 ['POST', '/thing/released/cluster/foo',        '', undef, 'update', 'thing', 'update_released_cluster', 'foo'],
+	 ['POST', '/thing/released/cluster%2Ffoo',      '', undef, 'update', 'thing', 'update_released', 'cluster/foo'],
+
+	 ['GET',  '/thing/released/cluster/foo.json',   '', undef, 'read',   'thing', 'read_released_cluster_json', 'foo'],
+	 ['GET',  '/thing/released/cluster%2Ffoo.json', '', undef, 'read',   'thing', 'read_released_json', 'cluster/foo'],
+	 ['POST', '/thing/released/cluster/foo.json',   '', undef, 'update', 'thing', 'update_released_cluster_json', 'foo'],
+	 ['POST', '/thing/released/cluster%2Ffoo.json', '', undef, 'update', 'thing', 'update_released_json', 'cluster/foo'],
+
+	 ['GET',  '/thing/released/cluster/foo.json',   '', $json, 'read',   'thing', 'read_released_cluster_json', 'foo'],
+	 ['GET',  '/thing/released/cluster%2Ffoo.json', '', $json, 'read',   'thing', 'read_released_json', 'cluster/foo'],
+	 ['POST', '/thing/released/cluster/foo.json',   '', $json, 'update', 'thing', 'update_released_cluster_json', 'foo'],
+	 ['POST', '/thing/released/cluster%2Ffoo.json', '', $json, 'update', 'thing', 'update_released_json', 'cluster/foo'],
+        ];
 
 {
   no warnings;
