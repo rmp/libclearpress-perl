@@ -1,4 +1,4 @@
-<!--#include virtual="/header.shtml"-->
+{% include header.shtml %}
 <h2>Authorisation</h2>
 
 <p>
@@ -7,9 +7,11 @@
  view's <i>authorised</i> method. To authorise all read and
  write actions for a view one could write:
 </p>
-<code>sub authorised {
+ {% highlight perl %}
+sub authorised {
   return 1;
-}</code>
+}
+{% endhighlight %}
 
 <p>
  Obviously this is way too simple for most applications. For many, the
@@ -19,7 +21,8 @@
  user, or a 'fake' public user, otherwise (faked for the simplicity of
  making calls on a user object).
 </p>
-<code>sub authorised {
+ {% highlight perl %}
+sub authorised {
  my $self = shift;
  my $util = $self->util;
  my $requestor = $util->requestor;
@@ -61,7 +64,8 @@
  # Disallow all other access
  #
  return;
-}</code>
+}
+{% endhighlight %}
 
 <p>
  As the <i>authorised</i> method is invoked for every view it's
@@ -71,7 +75,8 @@
 </p>
 <fieldset>
  <legend>app::view</legend>
- <code>sub authorised {
+ {% highlight perl %}
+sub authorised {
   my $self = shift;
   my $util = $self->util;
   my $requestor = $util->requestor;
@@ -80,12 +85,14 @@
    return 1;
   }
   return;
- }</code>
+ }
+{% endhighlight %}
 </fieldset>
 
 <fieldset>
  <legend>app::view::subclass</legend>
- <code>sub authorised {
+ {% highlight perl %}
+sub authorised {
   my $self = shift;
   my $util = $self->util;
   my $requestor = $util->requestor;
@@ -95,7 +102,8 @@
   }
 
   return $self->SUPER::authorised();
- }</code>
+ }
+{% endhighlight %}
 </fieldset>
 
 <p>
@@ -107,13 +115,13 @@
 
 <fieldset>
  <legend>read_complex.tt2</legend>
- <code>
+ {% highlight html %}
 &lt;h2&gt;Page Title&lt;/h2&gt;
 &lt;p&gt;page content&lt;/p&gt;
 [%- IF requestor.is_member_of('admin') %]
  &lt;p&gt;some admin content&lt;/p&gt;
 [%- END %]
- </code>
+{% endhighlight %}
 </fieldset>
 
-<!--#include virtual="/footer.shtml"-->
+{% include footer.shtml %}
