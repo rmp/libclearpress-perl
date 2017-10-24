@@ -157,4 +157,38 @@ $oKid->update or die;{% endhighlight %}
 $oKid->delete or die;{% endhighlight %}
 </p>
 
+<h3>Secondary Keys</h3>
+<p>
+  ClearPress::model supports the use of a unique secondary key (not compound). If, say, a user has a unique username, the primary id would be id_user or similar, and the secondary key would be username. ClearPress::model::init will check for a non-numeric scalar value in the constructor, and attempt to load on that when the primary key is not present. Similarly it will also attempt to load against a named field.
+</p>
+<p>
+  {% highlight perl %}
+  package app::model::user;
+  use strict;
+  use warnings;
+  __PACKAGE__->mk_accessors(fields());
+  sub fields {
+    return qw(id_user username);
+  }
+
+  sub secondary_key {
+    return q[username];
+  }
+  1;
+  {% endhighlight %}
+
+  {% highlight sql %}
+  INSERT INTO user VALUES(1,'bob123');
+  {% endhighlight %}
+
+  {% highlight perl %}
+  use app::model::user;
+  my $u = app::model::user->new(1);
+  my $u = app::model::user->new('bob123');
+  my $u = app::model::user->new({ id_user => 1 });
+  my $u = app::model::user->new({ username => 'bob123' });
+  {% endhighlight %}
+
+  The named-field method is particularly useful when you wish to load based on a numeric secondary key.
+</p>
 {% include footer.html %}
