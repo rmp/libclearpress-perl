@@ -9,32 +9,71 @@
   <h1>ClearPress Framework</h1>
 <div class="main">
 
-<h2>About</h2>
+<h2>REST</h2>
 <p>
- ClearPress is a small, lightweight, extensible web application
- framework written in Perl. ClearPress provides a loose MVC-style of
- component development. It extends Template Toolkit and ships with
- database adaptors for MySQL and SQLite. ClearPress comes with a
- built-in development server making it quick and easy to test your
- applications.
+ ClearPress supports working in a RESTful fashion. That is to say
+ there is a very systematic naming scheme for addressing entities and
+ supporting the operations usually required:
+
+ <ul>
+  <li>create</li>
+  <li>read</li>
+  <li>update</li>
+  <li>delete</li>
+  <li>list</li>
+  <li>add</li>
+  <li>edit</li>
+ </ul>
 </p>
 
-<h2>Features</h2>
-<p>For latest changes check the <a
-href="http://search.cpan.org/~rpettett/ClearPress/Changes">ChangeLog</a></p>
+<p>
+ The URL scheme looks something like this:
 
-<ul>
- <li>Content is structured using the excellent Template Toolkit</li>
- <li>Database storage using MySQL or SQLite</li>
- <li>Standalone development server</li>
- <li>Can run under Apache+mod_perl (or Apache2+mod_perl2)</li>
-</ul>
-<br/><br/><br/>
+ <dl>
+  <dt>Create</dt>
+  <dd><code>POST to http://server/application/entity</code></dd>
 
-<!--
-<object data="http://beta.metacpan.org/activity?res=month&distribution=ClearPress" width="170" height="22" type="image/svg+xml" />
--->
+  <dt>Read</dt>
+  <dd><code>GET from http://server/application/entity/id</code></dd>
 
+  <dt>Update</dt>
+  <dd><code>POST to http://server/application/entity/id</code></dd>
+
+  <dt>Delete</dt>
+  <dd><code>POST to http://server/application/entity/id;delete</code></dd>
+
+  <dt>Entity list</dt>
+  <dd><code>GET http://server/application/entity/</code></dd>
+
+  <dt>Add entity form</dt>
+  <dd><code>GET http://server/application/entity/id;add</code></dd>
+
+  <dt>Edit entity</dt>
+  <dd><code>GET http://server/application/entity/id;edit</code></dd>
+ </dl>
+</p>
+
+<p>
+ On the whole this is fine - default responses are in text/html and
+ that's great. Occasionally we want to use XML or JSON representations
+ - simple!
+
+ <dl>
+  <dt>Entity list in XML</dt>
+  <dd><code>GET http://server/application/entity.xml</code></dd>
+
+  <dt>Entity in JSON</dt>
+  <dd><code>GET http://server/application/entity/id.js</code></dd>
+
+  <dt>Entity image</dt>
+  <dd><code>GET http://server/application/entity/id.png</code></dd>
+ </dl>
+
+ Of course these do require a little work behind the scenes, like
+ writing templates to support JSON or XML responses, or adjusting a
+ view to return PNG images, but most of the annoying stuff should be
+ taken care of for you.
+</p>
 </div><!--end main-->
 
 <div id="menu">

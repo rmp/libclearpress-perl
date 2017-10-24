@@ -1,0 +1,220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+  <title>ClearPress Framework</title>
+  <link rel="stylesheet" type="text/css" href="clearpress.css"/>
+</head>
+
+ <body>
+  <h1>ClearPress Framework</h1>
+<div class="main">
+
+<h2>Object Relational Mapping</h2>
+
+<p>
+ ClearPress comes with a built-in, basic ORM layer in the
+ ClearPress::model superclass. Like views, data model objects should
+ be systematically named to avoid adding complexity (though it is
+ possible to override everything if you really want to!). Usually a
+ class maps to a table and an instance of a class (yes, an object)
+ usually maps to an individual row. Tables are usually named in the
+ singular form (e.g. 'child' rather than 'children') and the class
+ name-suffix has the same name as the table,
+ e.g. application::model::child.
+</p>
+
+<h3>Table fields / data members</h3>
+<p>
+ Data model objects at the bare minimum carry the following
+ information - the package name and an array of fields which map to
+ the database table the class represents.
+</p>
+
+<p>
+ Fields can be reflected in automatic get/set accessors courtesy of
+ Class::Accessor. Most data models come with this near their head:
+ <code>__PACKAGE__->mk_accessors(fields())</code> which uses the array
+ from sub fields() { } to construct the accessors.
+</p>
+
+<p>
+ The ClearPress ORM does not (currently) perform database inspection
+ to build attributes and relationships automatically (at run- or
+ compile- time). It relies on the list of fields always reflecting
+ what's in the database. For example:
+
+ <code>sub fields {
+ return qw(id_child name dob id_family);
+}</code>
+</p>
+
+<h3>Creating stuff</h3>
+<p>
+ Here's our data model:
+ <code>package Grandkids::model::kid;
+use strict;
+use warnings;
+use base qw(ClearPress::model);
+
+__PACKAGE__->mk_accessors(fields());
+
+sub fields {
+ return qw(id_kid name dob id_family);
+}
+
+1;
+</code>
+
+ which represents a database table:
+<code>create table kid(
+ id_kid bigint unsigned primary key auto_increment not null,
+ name char(128) default '' not null,
+ dob datetime not null,
+ id_family bigint unsigned
+);</code>
+
+ and here's how we could use it to add a new entry in the database:
+<code>use Grandkids::model::kid;
+my $oKid = Grandkids::model::kid->new();
+$oKid->name('Bob');
+$oKid->id_family(1);
+$oKid->dob('2009-02-10 10:00:00');
+
+$oKid->create or die;</code>
+
+ Using accessors to set all the values is unwieldy so we can also do it during construction:
+<code>my $oKid = Grandkids::model::kid->new({
+ name      => 'Bob',
+ id_family => 1,
+ dob       => '2009-02-10 10:00:00',
+});
+
+$oKid->create or die;</code>
+
+ Notice that we didn't add an id_kid to either of these, because we
+ want our database to allocate them for us. id_kid is the first field
+ in <i>sub fields</i> and as such it's recognised by ClearPress::model
+ as the primary key for this class. If we did add an id_kid, the new
+ entry would be created with that id unless it already exists, in
+ which case an error would be raised.
+</p>
+
+<h3>Reading stuff</h3>
+<p>
+ Read access from the database comes in a couple of flavours - lists
+ and individuals. The latter (read) requires an entity's id. Listings
+ are fractionally simpler as the basics are implemented in the
+ superclass.
+</p>
+
+<h4>List</h4>
+<p>
+ To activate the basic list method (list everything) we add this to
+ the top of the class <code>__PACKAGE__->has_all()</code> which adds a
+ pluralised accessor (in this case <i>kids</i>) returning an array
+ reference of all kid objects from the database. This can now be used
+ like so:
+
+ <code> my $oRootKid = Grandkids::model::kid->new(); # note no id required
+ my $arKids   = $oRootKid->kids();
+ for my $oKid (@{$arKids}) {
+  printf q[%d %s %s %d\n],
+         $oKid->id_kid,
+         $oKid->name,
+         $oKid->dob,
+         $oKid->id_family;
+ }</code>
+</p>
+
+<h4>Read</h4>
+<p>
+ To read a specific entity given its id (primary key) we can specify
+ it in the constructor:
+
+ <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
+ printf q[%d %s %s %d\n],
+        $oKid->id_kid,
+        $oKid->name,
+        $oKid->dob,
+        $oKid->id_family;</code>
+</p>
+
+<h3>Updating stuff</h3>
+<p>
+ To modify an existing entity we load it with its primary key, add the
+ value to change then ask it to update:
+
+ <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
+$oKid->name('Billy');
+$oKid->update or die;</code>
+
+ If the row in the database is heavy (e.g. contains a large text field
+ or blob) you don't need to worry. ClearPress::model tries to be lazy
+ by default - as we don't ask it for anything we didn't give it, it
+ won't try to fetch the row from the database. It will just save the
+ values it has.
+</p>
+
+<h3>Deleting stuff</h3>
+<p>
+ Deleting entries from the database is easy. Read with an entity's
+ primary key, then call delete:
+
+ <code>my $oKid = Grandkids::model::kid->new({id_kid=>1});
+$oKid->delete or die;</code>
+</p>
+
+</div><!--end main-->
+
+<div id="menu">
+ <ul>
+  <li><a href="/index.shtml">About</a></li>
+  <li><a href="/installing.shtml">Installing</a></li>
+  <li><a href="/basics.shtml">The Basics</a></li>
+  <li><a href="/rest.shtml">REST</a></li>
+  <li><a href="/orm.shtml">ORM / Models</a></li>
+  <li><a href="/views.shtml">Views</a></li>
+  <li><a href="/routes.shtml">Routes</a></li>
+  <li><a href="/streaming.shtml">Streamed content</a></li>
+  <li><a href="/mimetypes.shtml">Custom response types</a></li>
+  <li><a href="/paging.shtml">Paging Lists</a></li>
+  <li><a href="/ajax.shtml">Working with AJAX</a></li>
+  <li><a href="/authen.shtml">Authentication</a></li>
+  <li><a href="/authz.shtml">Authorisation</a></li>
+  <li><a href="/pdf.shtml">Exporting PDFs</a></li>
+ </ul>
+
+ <br/><br/><b>Still to come:</b>
+ <ul style="font-style:italic">
+  <li>Transactions</li>
+  <li>Posting XML</li>
+  <li>Automated Testing</li>
+  <li>Internationalisation</li>
+ </ul>
+</div>
+
+
+<div class="footer" style="margin-left:-50px">
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822/GB/gardmalt-21/8001/e9b44bbc-a251-45f1-8386-10affeb751cc"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822%2FGB%2Fgardmalt-21%2F8001%2Fe9b44bbc-a251-45f1-8386-10affeb751cc&Operation=NoScript">Amazon.co.uk Widgets</A></NOSCRIPT>
+</div>
+
+<div class="footer">
+<address><a href="mailto:rmp@psyphi.net">rmp</a></address>
+<!-- Created: Mon Jan 19 11:45:21 GMT 2009 -->
+<!-- hhmts start -->
+Last modified: Tue Jan 26 12:12:00 2010
+<!-- hhmts end -->
+</div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-815452-5");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+  </body>
+</html>
+

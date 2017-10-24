@@ -1,0 +1,18 @@
+/*Kuler - Japanese Garden: D8CAA8 5C832F 284907 382513 363942 */
+body{margin-right:auto;margin-left:auto;width:708px;color:#363942;padding:0;font-family:geneva,arial,helvetica,sans-serif;font-size:smaller}
+
+div{padding:2px}
+p{justify:left;width:500px}
+div.main{width:560px;float:left}
+address{float:right;margin-right:8em}
+div.footer{clear:left}
+#menu{width:140px;float:right}
+#menu ul{margin:0;padding:0;list-style-type:none}
+#menu li{margin:0;padding:0}
+#menu li a{display:block}
+#menu a:hover{text-decoration:none;background:#eee}
+a{color:#284907;text-decoration:none;border-bottom:1px dashed #aaa}
+a:hover{color:#363942;text-decoration:underline}
+code{display:block;background:#eee;border:1px dashed #aaa;margin:0.5em;padding:0.2em;white-space:pre;font-family:monospace}
+div.main ul li{list-style-type:none}
+div.main ul li:before{content:"\2192 ";padding-right:0.5em}

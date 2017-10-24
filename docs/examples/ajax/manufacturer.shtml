@@ -1,0 +1,26 @@
+<html>
+ <head>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.1.min.js"></script>
+  <title>Manufacturer 1</title>
+ </head>
+ <body>
+  <h1>Manufacturer 1</h1>
+  <ul>
+   <li><a class="carlink" href="car/1.shtml">astra</a></li>
+   <li><a class="carlink" href="car/2.shtml">vectra</a></li>
+   <li><a class="carlink" href="car/3.shtml">corsa</a></li>
+  </ul>
+  <div id="cartarget" style="border: 1px solid #000;height:100px;width:400px">
+  </div>
+
+  <script type="text/javascript">
+ $(document).ready(function(){
+  $('a.carlink').click(function(){
+   $('#cartarget').load(this.href);
+   return false;
+  });
+ });
+  </script>
+
+ </body>
+</html>

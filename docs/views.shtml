@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+  <title>ClearPress Framework</title>
+  <link rel="stylesheet" type="text/css" href="clearpress.css"/>
+</head>
+
+ <body>
+  <h1>ClearPress Framework</h1>
+<div class="main">
+
+<h2>Views</h2>
+
+<p>
+ Views inherit and extend functionality of the ClearPress::view
+ superclass. At the very minimum, application views can contain as
+ little as no code, just the reference to their superclass for
+ inheritance purposes.
+ <code>package Grandkids::view::kid;
+use strict;
+use warnings;
+use base qw(ClearPress::view);
+
+1;
+</code>
+</p>
+
+<p>
+ The superclass defines all of the basic functionality to support
+ extended CRUD mechanisms (create, read, update, delete, list, edit,
+ add) for XML, JSON, HTML and AJAX/HTML fragments.
+</p>
+
+<p>
+ Whilst basic functionality gets you part-way there it's often not
+ quite enough for more complicated scenarios. To take care of these
+ situations any method implemented in the view with the right
+ systematic name will override the method of the same name in the
+ superclass, e.g. list, list_xml, read, read_png, create_json etc.
+</p>
+
+<p>
+ Within these methods it is possible to access all of the useful bits
+ for processing a request and buildig a response.
+</p>
+
+<h3>Accessing CGI</h3>
+<p>
+ When processing a web request it's usually handy to have any CGI
+ parameters. To get hold of them grab the instance of CGI.pm:
+
+ <code>sub list {
+ my $self = shift;
+ my $util = $self->util;
+ my $cgi  = $util->cgi;
+ ...
+}</code>
+</p>
+
+<h3>Accessing the data model</h3>
+<p>
+ Almost all requests need to do something with one or more data models
+ so at the very least you'll need to locate the one corresponding to
+ this view method before you do something with it:
+
+ <code>sub list {
+ my $self  = shift;
+ my $model = $self->model;
+ ...</code>
+</p>
+
+<h3>Putting it together</h3>
+<p>
+ Let's say you have a small cascade of related objects, let's say a
+ family with a child, which need to be built from the results of a
+ POSTed form and saved together in one transaction. Assuming we're in
+ <i>Grandkids::view::family</i>...
+
+ <code>sub create {
+ my $self   = shift;
+ my $util   = $self->util;
+ my $cgi    = $util->cgi;
+ my $family = $self->model;
+
+ my $f_name = $cgi->param('name');
+ $family->name($f_name);
+
+ my $c_name = $cgi->param('child_name');
+ my $child = Grandkids::model::child->new({name => $c_name});
+
+ $family->children($child);
+
+ return $family->create();
+}</code>
+
+ This makes quite a lot of other assumptions too - the form posting to
+ this code has to contain both <i>name</i> and <i>child_name</i>
+ fields, and only one of each and the family model's <i>create</i>
+ method needs to check for children to save as part of its
+ transaction.
+</p>
+
+</div><!--end main-->
+
+<div id="menu">
+ <ul>
+  <li><a href="/index.shtml">About</a></li>
+  <li><a href="/installing.shtml">Installing</a></li>
+  <li><a href="/basics.shtml">The Basics</a></li>
+  <li><a href="/rest.shtml">REST</a></li>
+  <li><a href="/orm.shtml">ORM / Models</a></li>
+  <li><a href="/views.shtml">Views</a></li>
+  <li><a href="/routes.shtml">Routes</a></li>
+  <li><a href="/streaming.shtml">Streamed content</a></li>
+  <li><a href="/mimetypes.shtml">Custom response types</a></li>
+  <li><a href="/paging.shtml">Paging Lists</a></li>
+  <li><a href="/ajax.shtml">Working with AJAX</a></li>
+  <li><a href="/authen.shtml">Authentication</a></li>
+  <li><a href="/authz.shtml">Authorisation</a></li>
+  <li><a href="/pdf.shtml">Exporting PDFs</a></li>
+ </ul>
+
+ <br/><br/><b>Still to come:</b>
+ <ul style="font-style:italic">
+  <li>Transactions</li>
+  <li>Posting XML</li>
+  <li>Automated Testing</li>
+  <li>Internationalisation</li>
+ </ul>
+</div>
+
+
+<div class="footer" style="margin-left:-50px">
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822/GB/gardmalt-21/8001/e9b44bbc-a251-45f1-8386-10affeb751cc"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822%2FGB%2Fgardmalt-21%2F8001%2Fe9b44bbc-a251-45f1-8386-10affeb751cc&Operation=NoScript">Amazon.co.uk Widgets</A></NOSCRIPT>
+</div>
+
+<div class="footer">
+<address><a href="mailto:rmp@psyphi.net">rmp</a></address>
+<!-- Created: Mon Jan 19 11:45:21 GMT 2009 -->
+<!-- hhmts start -->
+Last modified: Tue Jan 26 12:12:00 2010
+<!-- hhmts end -->
+</div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-815452-5");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+  </body>
+</html>
+

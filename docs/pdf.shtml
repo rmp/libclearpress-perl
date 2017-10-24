@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+  <title>ClearPress Framework</title>
+  <link rel="stylesheet" type="text/css" href="clearpress.css"/>
+</head>
+
+ <body>
+  <h1>ClearPress Framework</h1>
+<div class="main">
+
+<h2>Exporting PDFs</h2>
+
+<p>
+  Exporting PDF pages is pretty easy. They can be templated in much
+  the same way as HTML. There are several ways to do it but the one I
+  use involves using TeX as an intermediate format.
+</p>
+
+<p>
+  Firstly install an appropriate TeX package for your platform. I usually use <b>tetex</b>. Then install the <b>Template::Plugin::Latex</b> plugin which serves as a wrapper around your new tetex installation. Now you're ready to go.
+</p>
+
+<p>
+  By default the ClearPress view superclass doesn't directly support
+  PDF (although this may change in future) so you need to tell your
+  view superclass a little bit more about how to serve the pages.
+</p>
+
+<code> sub decor {
+   my $self   = shift;
+   my $aspect = $self->aspect;
+
+   if($aspect eq 'read_pdf') {
+     return 0;
+   }
+
+   return $self->SUPER::decor();
+ }
+</code>
+
+<p>
+  The content-type with which to serve the page needs to be configured in init(). I like to add a useful filter for TeX entity escaping, so this is also set up here:
+</p>
+
+<code>sub init {
+  my $self   = shift;
+  my $aspect = $self->aspect || q[];
+
+  $self->add_tt_filter('tex_entity',  \&_tex_entity);
+
+  $self->{content_type} ||= ($aspect =~ /_pdf$/smx) ? 'application/pdf' : q[];
+
+  return 1;
+}
+
+sub _tex_entity {
+  my $string = shift;
+  $string    =~ s{([\\&amp;_%])}{\\$1}smxg;
+  return $string;
+}
+</code>
+
+<p>
+  Next we need to tell our view that it's ok to accept 'read_pdf' requests:
+</p>
+
+<code>sub read_pdf {
+  return 1;
+}
+</code>
+
+<p>
+  but note there's no implementation here. All the real TeX/PDF work is done in the templating. So entity_read_pdf.tt2 looks something like this:
+</p>
+
+<code>[% USE Latex; FILTER latex("pdf") -%]
+\documentclass{report}
+
+\begin{document}
+
+\title{Report for [% model.table | tex_entity %] [% model.id %]}
+\author{[% requestor.username | tex_entity %]}
+\maketitle
+
+\begin{table}
+\begin{tabular}{|r|c|}
+\hline
+
+[% FOREACH f IN model.fields -%]
+[% f | tex_entity %] & [% model.$f | tex_entity %] \\
+[% END -%]
+
+\hline
+\end{tabular}
+\caption{my table which is a very good table}
+\end{table}
+
+\end{document}
+[% END -%]
+</code>
+
+<p>
+  And that should be very nearly all there is to it. There is one downside though - you need to learn some TeX. Sorry - can't really help much there. Maybe there's a Template::Plugin::PostScript somewhere... :)
+</p>
+</div><!--end main-->
+
+<div id="menu">
+ <ul>
+  <li><a href="/index.shtml">About</a></li>
+  <li><a href="/installing.shtml">Installing</a></li>
+  <li><a href="/basics.shtml">The Basics</a></li>
+  <li><a href="/rest.shtml">REST</a></li>
+  <li><a href="/orm.shtml">ORM / Models</a></li>
+  <li><a href="/views.shtml">Views</a></li>
+  <li><a href="/routes.shtml">Routes</a></li>
+  <li><a href="/streaming.shtml">Streamed content</a></li>
+  <li><a href="/mimetypes.shtml">Custom response types</a></li>
+  <li><a href="/paging.shtml">Paging Lists</a></li>
+  <li><a href="/ajax.shtml">Working with AJAX</a></li>
+  <li><a href="/authen.shtml">Authentication</a></li>
+  <li><a href="/authz.shtml">Authorisation</a></li>
+  <li><a href="/pdf.shtml">Exporting PDFs</a></li>
+ </ul>
+
+ <br/><br/><b>Still to come:</b>
+ <ul style="font-style:italic">
+  <li>Transactions</li>
+  <li>Posting XML</li>
+  <li>Automated Testing</li>
+  <li>Internationalisation</li>
+ </ul>
+</div>
+
+
+<div class="footer" style="margin-left:-50px">
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822/GB/gardmalt-21/8001/e9b44bbc-a251-45f1-8386-10affeb751cc"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822%2FGB%2Fgardmalt-21%2F8001%2Fe9b44bbc-a251-45f1-8386-10affeb751cc&Operation=NoScript">Amazon.co.uk Widgets</A></NOSCRIPT>
+</div>
+
+<div class="footer">
+<address><a href="mailto:rmp@psyphi.net">rmp</a></address>
+<!-- Created: Mon Jan 19 11:45:21 GMT 2009 -->
+<!-- hhmts start -->
+Last modified: Tue Jan 26 12:12:00 2010
+<!-- hhmts end -->
+</div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-815452-5");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+  </body>
+</html>
+

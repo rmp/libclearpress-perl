@@ -9,32 +9,22 @@
   <h1>ClearPress Framework</h1>
 <div class="main">
 
-<h2>About</h2>
+<h2>Installing</h2>
 <p>
- ClearPress is a small, lightweight, extensible web application
- framework written in Perl. ClearPress provides a loose MVC-style of
- component development. It extends Template Toolkit and ships with
- database adaptors for MySQL and SQLite. ClearPress comes with a
- built-in development server making it quick and easy to test your
- applications.
+ ClearPress is available from CPAN. Installation is simplest via the
+ CPAN shell: <code>cpan ClearPress</code>
 </p>
 
-<h2>Features</h2>
-<p>For latest changes check the <a
-href="http://search.cpan.org/~rpettett/ClearPress/Changes">ChangeLog</a></p>
-
-<ul>
- <li>Content is structured using the excellent Template Toolkit</li>
- <li>Database storage using MySQL or SQLite</li>
- <li>Standalone development server</li>
- <li>Can run under Apache+mod_perl (or Apache2+mod_perl2)</li>
-</ul>
-<br/><br/><br/>
-
-<!--
-<object data="http://beta.metacpan.org/activity?res=month&distribution=ClearPress" width="170" height="22" type="image/svg+xml" />
--->
-
+<p>
+ Installation requires a handful of prerequisites, all available from
+ CPAN. Notably some XML-related modules like <a
+ href="http://search.cpan.org/search?query=XML::LibXML&mode=dist">XML::LibXML</a>
+ and database-related modules like <a
+ href="http://search.cpan.org/search?query=DBD::SQLite&mode=dist">DBD::SQLite</a>
+ and <a
+ href="http://search.cpan.org/search?query=DBD::mysql&mode=dist">DBD::mysql</a>.
+</p>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 </div><!--end main-->
 
 <div id="menu">

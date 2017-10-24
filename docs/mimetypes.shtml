@@ -9,31 +9,73 @@
   <h1>ClearPress Framework</h1>
 <div class="main">
 
-<h2>About</h2>
 <p>
- ClearPress is a small, lightweight, extensible web application
- framework written in Perl. ClearPress provides a loose MVC-style of
- component development. It extends Template Toolkit and ships with
- database adaptors for MySQL and SQLite. ClearPress comes with a
- built-in development server making it quick and easy to test your
- applications.
+ Let's say ClearPress doesn't support our favourite format
+ out-of-the-box. YAML for example - pretty common really but it hasn't
+ (yet) been included as a standard response for views. We want to add
+ YAML output using ClearPress' standard method naming (read_yml,
+ list_yml etc.)  and tidy file extensions (.yml), just like we do for
+ XML.
 </p>
 
-<h2>Features</h2>
-<p>For latest changes check the <a
-href="http://search.cpan.org/~rpettett/ClearPress/Changes">ChangeLog</a></p>
+<p>
+First in your view subclass, set any aspects ending in _yml to serve content in text/plain.
 
-<ul>
- <li>Content is structured using the excellent Template Toolkit</li>
- <li>Database storage using MySQL or SQLite</li>
- <li>Standalone development server</li>
- <li>Can run under Apache+mod_perl (or Apache2+mod_perl2)</li>
-</ul>
-<br/><br/><br/>
+<pre><code>sub init {
+  my $aspect = $self-&gt;aspect;
 
-<!--
-<object data="http://beta.metacpan.org/activity?res=month&distribution=ClearPress" width="170" height="22" type="image/svg+xml" />
--->
+  $self-&gt;{content_type} ||= ($aspect =~ /_yml$/smx)?'text/plain':q[];
+
+  return 1;
+}
+</code></pre></p>
+
+<p>
+Next, again in the view subclass, disable page decoration for aspects ending in _yml.
+
+<pre><code>sub decor {
+  my $self   = shift;
+  my $aspect = $self-&gt;aspect;
+
+  if($aspect =~ /_yml$/smx) {
+   return 0;
+  }
+  return $self-&gt;SUPER::decor();
+}
+</code></pre></p>
+
+<p>
+Set up a template, data/templates/read_something_yml.tt2,  to use <a href="http://search.cpan.org/~rclamp/Template-Plugin-YAML">Template::Plugin::YAML</a>.
+
+<pre><code>[%- USE YAML %]
+[% yaml.dump(model) %]
+</code></pre>
+
+Note that as this stands it will dump the model's data and a lot of other junk from the template engine and the database handle etc.
+</p>
+
+<p>
+So far what we've set up will allow us to access URLs like http://example.com/application/something/id;read_yml but that's pretty ugly, so last but not least we want to allow access via clean URLs like http://example.com/application/something/id.yml so in controller.pm we do:
+<pre><code>sub accept_extensions {
+  my $self = shift;
+  return [
+          @{$self-&gt;SUPER::accept_extensions},
+          {'.yml'  =&gt; q[_yml]},
+         ];
+}</code></pre></p>
+
+<p>
+ Et voila! A YAML-formatted object dump with clean URL formatting. For extra credit you can make a clean data structure to dump using something like this:
+
+<pre><code>[%- USE YAML %]
+[%- PERL %]
+  $stash->{clean} = {
+    map { $_ => $stash->{model}->$_() }
+    $stash->{model}->fields()
+  }
+[% END %]
+[%- YAML.dump(clean) %]
+</code></pre></p>
 
 </div><!--end main-->
 
@@ -88,4 +130,5 @@ pageTracker._trackPageview();
 } catch(err) {}</script>
   </body>
 </html>
+
 

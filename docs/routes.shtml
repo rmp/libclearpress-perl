@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+  <title>ClearPress Framework</title>
+  <link rel="stylesheet" type="text/css" href="clearpress.css"/>
+</head>
+
+ <body>
+  <h1>ClearPress Framework</h1>
+<div class="main">
+
+
+<table style="font-size:smaller; margin-left: -240px">
+  <thead>
+    <tr>
+      <th>HTTP_METHOD</th>
+      <th>URI</th>
+      <th>QUERY_STRING</th>
+      <th>Headers</th>
+      <th>Action</th>
+      <th>Entity</th>
+      <th>Aspect</th>
+      <th>Id</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr><td>GET</td> <td>/</td> <td></td> <td></td> <td>read</td> <td>example</td> <td>list</td> <td>0</td></tr>
+
+    <tr><td>GET</td> <td>/thing/method</td>               <td></td>            <td></td> <td>read</td>   <td>thing</td>  <td>read</td>                 <td>method</td></tr>
+    <tr><td>GET</td> <td>/thing2/method</td>              <td></td>            <td></td> <td>read</td>   <td>thing2</td>  <td>list_method</td>         <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/method/50</td>            <td></td>            <td></td> <td>read</td>   <td>thing</td>  <td>read_method</td>          <td>50</td></tr>
+    <tr><td>GET</td> <td>/thing3/avg/by/pos</td>          <td>id_run=1234</td> <td></td> <td>read</td>  <td>thing3</td>  <td>list_avg_by_pos</td>      <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing4/avg/by/pos.xml</td>      <td>id_run=1234</td> <td></td> <td>read</td>  <td>thing4</td>  <td>list_avg_by_pos_xml</td>  <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing5/avg/by/pos.xml</td>      <td>id_run=1234</td> <td></td> <td>read</td>  <td>thing5</td>  <td>read_avg_by_xml</td>      <td>pos</td></tr>
+    <tr><td>GET</td> <td>/thing</td>                      <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>list</td>      <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/1</td>                    <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>read</td>      <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing.xml</td>                  <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>list_xml</td>  <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/1.xml</td>                <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>read_xml</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing;list_xml</td>             <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>list_xml</td>  <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing;do_stuff</td>             <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>list_do_stuff</td>  <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/1;read_xml</td>           <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>read_xml</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing;add</td>                  <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>add</td>       <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing;add_xml</td>              <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>add_xml</td>   <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing.xml;add</td>              <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>add_xml</td>   <td>0</td></tr>
+
+    <tr><td>GET</td> <td>/thing/1;edit</td>               <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit</td>      <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/edit/1</td>               <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit</td>      <td>1</td></tr>
+
+    <tr><td>GET</td> <td>/thing/edit/1.ajax</td>          <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_ajax</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/edit_ajax/1</td>          <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_ajax</td>  <td>1</td></tr>
+
+    <tr><td>GET</td> <td>/thing/edit_batch/1</td>         <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_batch</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/edit_batch/1.ajax</td>    <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/edit_batch_ajax/1</td>    <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/1.ajax;edit_batch</td>    <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>GET</td> <td>/thing/1;edit_batch_ajax</td>    <td></td>  <td></td> <td>read</td>    <td>thing</td>  <td>edit_batch_ajax</td>  <td>1</td></tr>
+
+    <tr><td>POST</td>  <td>/thing/batch/1</td>              <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch</td>  <td>1</td></tr>
+    <tr><td>POST</td>  <td>/thing/batch/1.ajax</td>         <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>POST</td>  <td>/thing/update_batch/1</td>       <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch</td>  <td>1</td></tr>
+    <tr><td>POST</td>  <td>/thing/batch/1.ajax</td>         <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>POST</td>  <td>/thing/1.ajax;update_batch</td>  <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch_ajax</td>  <td>1</td></tr>
+    <tr><td>POST</td>  <td>/thing/1;update_batch_ajax</td>  <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_batch_ajax</td>  <td>1</td></tr>
+
+    <tr><td>GET</td> <td>/thing/released/cluster.xml</td>  <td></td>  <td></td> <td>read</td>  <td>thing</td>  <td>read_released_xml</td>  <td>cluster</td></tr>
+
+    <tr><td>GET</td> <td>/user/me@example.com;edit</td>   <td></td>  <td></td> <td>read</td>    <td>user</td>    <td>edit</td>  <td>me@example.com</td></tr>
+    <tr><td>GET</td> <td>/thing/heatmap.png</td>          <td></td>  <td></td> <td>read</td>    <td>thing</td>   <td>read_png</td>  <td>heatmap</td></tr>
+    <tr><td>GET</td> <td>/thing5/heatmap.png</td>         <td></td>  <td></td> <td>read</td>    <td>thing5</td>  <td>list_heatmap_png</td>    <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing9/heatmap</td>             <td></td>  <td></td> <td>read</td>    <td>thing9</td>  <td>list_heatmap</td>        <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/heatmap/45.png</td>       <td></td>  <td></td> <td>read</td>    <td>thing</td>   <td>read_heatmap_png</td>    <td>45</td></tr>
+    <tr><td>POST</td>  <td>/thing/heatmap/45.png</td>      <td></td>  <td></td> <td>update</td>  <td>thing</td>   <td>update_heatmap_png</td>  <td>45</td></tr>
+
+    <tr><td>POST</td>  <td>/thing</td>                     <td></td>  <td></td> <td>create</td>  <td>thing</td>  <td>create</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing.xml</td>                 <td></td>  <td></td> <td>create</td>  <td>thing</td>  <td>create_xml</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing;create_xml</td>          <td></td>  <td></td> <td>create</td>  <td>thing</td>  <td>create_xml</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing/10</td>                  <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update</td>  <td>10</td></tr>
+    <tr><td>POST</td>  <td>/thing/10.xml</td>              <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_xml</td>  <td>10</td></tr>
+    <tr><td>POST</td>  <td>/thing/10;update_xml</td>       <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_xml</td>  <td>10</td></tr>
+    <tr><td>POST</td>  <td>/thing/update/10.xml</td>       <td></td>  <td></td> <td>update</td>  <td>thing</td>  <td>update_xml</td>  <td>10</td></tr>
+    <tr><td>POST</td>  <td>/thing10/heatmap.png</td>       <td></td>  <td></td> <td>create</td>  <td>thing10</td>  <td>create_heatmap_png</td>  <td>0</td></tr>
+
+    <tr><td>POST</td>  <td>/thing6/batch.xml</td>          <td></td>  <td></td>    <td>create</td>  <td>thing6</td>   <td>create_batch_xml</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing6/batch.xml</td>          <td></td>  <td>HTTP_ACCEPT=text/xml</td> <td>create</td>   <td>thing6</td>  <td>create_batch_xml</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing7/batch</td>              <td></td>  <td>XHR</td>  <td>create</td>  <td>thing7</td>  <td>create_batch_ajax</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing7;create_batch</td>       <td></td>  <td>XHR</td>  <td>create</td>  <td>thing7</td>  <td>create_batch_ajax</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing7;create_batch_ajax</td>  <td></td>  <td></td>     <td>create</td>  <td>thing7</td>  <td>create_batch_ajax</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing7.ajax;create_batch</td>  <td></td>  <td></td>     <td>create</td>  <td>thing7</td>  <td>create_batch_ajax</td>  <td>0</td></tr>
+    <tr><td>POST</td>  <td>/thing8/batch.xml</td>          <td></td>  <td>XHR</td>  <td>create</td>  <td>thing8</td>  <td>create_batch_xml</td>   <td>0</td></tr>
+    <tr><td>DELETE</td>  <td>/thing/10</td>                <td></td>  <td></td>     <td>delete</td>  <td>thing</td>   <td>delete</td>             <td>10</td></tr>
+    <tr><td>POST</td>    <td>/thing/10;delete</td>         <td></td>  <td></td>     <td>delete</td>  <td>thing</td>   <td>delete</td>             <td>10</td></tr>
+
+    <tr><td>GET</td> <td>/thing11/overridden</td>           <td></td> <td>XHR</td> <td>read</td> <td>thing11</td> <td>list_overridden_ajax</td>     <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing12.txt</td>                  <td></td> <td>XHR</td> <td>read</td> <td>thing12</td> <td>list_txt</td>                 <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/12.txt</td>                 <td></td> <td>XHR</td> <td>read</td> <td>thing</td>   <td>read_txt</td>                 <td>12</td></tr>
+    <tr><td>GET</td> <td>/testmap/test.xml</td>             <td></td> <td></td>    <td>read</td> <td>testmap</td> <td>list_test_xml</td>            <td>0</td></tr>
+    <tr><td>GET</td> <td>/thing/valid_flowcell/12.js</td>   <td></td> <td>XHR</td> <td>read</td> <td>thing</td>   <td>read_valid_flowcell_json</td> <td>12</td></tr>
+    <tr><td>GET</td> <td>/thing/valid_flowcell_json/12</td> <td></td> <td>XHR</td> <td>read</td> <td>thing</td>   <td>read_valid_flowcell_json</td> <td>12</td></tr>
+  </tbody>
+</table>
+</div><!--end main-->
+
+<div id="menu">
+ <ul>
+  <li><a href="/index.shtml">About</a></li>
+  <li><a href="/installing.shtml">Installing</a></li>
+  <li><a href="/basics.shtml">The Basics</a></li>
+  <li><a href="/rest.shtml">REST</a></li>
+  <li><a href="/orm.shtml">ORM / Models</a></li>
+  <li><a href="/views.shtml">Views</a></li>
+  <li><a href="/routes.shtml">Routes</a></li>
+  <li><a href="/streaming.shtml">Streamed content</a></li>
+  <li><a href="/mimetypes.shtml">Custom response types</a></li>
+  <li><a href="/paging.shtml">Paging Lists</a></li>
+  <li><a href="/ajax.shtml">Working with AJAX</a></li>
+  <li><a href="/authen.shtml">Authentication</a></li>
+  <li><a href="/authz.shtml">Authorisation</a></li>
+  <li><a href="/pdf.shtml">Exporting PDFs</a></li>
+ </ul>
+
+ <br/><br/><b>Still to come:</b>
+ <ul style="font-style:italic">
+  <li>Transactions</li>
+  <li>Posting XML</li>
+  <li>Automated Testing</li>
+  <li>Internationalisation</li>
+ </ul>
+</div>
+
+
+<div class="footer" style="margin-left:-50px">
+<SCRIPT charset="utf-8" type="text/javascript" src="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822/GB/gardmalt-21/8001/e9b44bbc-a251-45f1-8386-10affeb751cc"> </SCRIPT> <NOSCRIPT><A HREF="http://ws.amazon.co.uk/widgets/q?ServiceVersion=20070822&MarketPlace=GB&ID=V20070822%2FGB%2Fgardmalt-21%2F8001%2Fe9b44bbc-a251-45f1-8386-10affeb751cc&Operation=NoScript">Amazon.co.uk Widgets</A></NOSCRIPT>
+</div>
+
+<div class="footer">
+<address><a href="mailto:rmp@psyphi.net">rmp</a></address>
+<!-- Created: Mon Jan 19 11:45:21 GMT 2009 -->
+<!-- hhmts start -->
+Last modified: Tue Jan 26 12:12:00 2010
+<!-- hhmts end -->
+</div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-815452-5");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+  </body>
+</html>
+
