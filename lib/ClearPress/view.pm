@@ -266,7 +266,7 @@ sub method_name {
 }
 
 sub streamed_aspects {
-  return [qw(options)];
+  return [];
 }
 
 sub streamed {
@@ -319,7 +319,7 @@ sub render {
   }
 
   if($self->can($method)) {
-    if($aspect eq 'options' ||
+    if($action eq 'options' ||
        $aspect =~ /_(?:jpg|png|gif|svg|svgz)/smx) {
       return $self->$method();
     }
