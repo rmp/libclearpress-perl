@@ -24,7 +24,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[477.1.4];
+our $VERSION = q[477.1.5];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
@@ -674,6 +674,7 @@ sub decor {
   if($self->action eq 'options') {
     return 0;
   }
+
   for my $ending (qw(rss atom ajax xml
                      json js _png _jpg _svg _svgz
                      _txt _csv _xls)) {

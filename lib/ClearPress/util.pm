@@ -16,7 +16,7 @@ use CGI;
 use IO::Capture::Stderr;
 use Data::UUID;
 
-our $VERSION = q[477.1.4];
+our $VERSION = q[477.1.5];
 
 our $DEBUG_UTIL           = 0;
 our $DEFAULT_TRANSACTIONS = 1;
@@ -205,6 +205,10 @@ sub cleanup {
 
   if(exists $self->{dbh}) {
     $self->{dbh}->disconnect();
+  }
+
+  if(exists $self->{driver}) {
+    delete $self->{driver}; # should trigger driver::DESTROY
   }
 
   return 1;
