@@ -14,7 +14,8 @@ use File::Temp qw(tempdir);
 
 our @EXPORT_OK  = qw(is_rendered_js);
 our $DB_CLEANUP = 1;
-our $DB_DIR=tempdir(CLEANUP => $DB_CLEANUP);
+our $DB_DIR     = tempdir(CLEANUP => $DB_CLEANUP);
+
 $ENV{dev} = q[test];
 
 sub _tmp_db_name {
