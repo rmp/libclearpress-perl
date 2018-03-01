@@ -1,6 +1,6 @@
-MAJOR    ?= 477
-MINOR    ?= 1
-SUB      ?= 5
+MAJOR    ?= 2018
+MINOR    ?= 03
+SUB      ?= 01
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i

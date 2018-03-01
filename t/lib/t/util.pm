@@ -12,13 +12,13 @@ use English qw(-no_match_vars);
 use Digest::SHA qw(sha1_hex);
 use File::Temp qw(tempdir);
 
-our @EXPORT_OK = qw(is_rendered_js);
+our @EXPORT_OK  = qw(is_rendered_js);
 our $DB_CLEANUP = 1;
-
+our $DB_DIR=tempdir(CLEANUP => $DB_CLEANUP);
 $ENV{dev} = q[test];
 
 sub _tmp_db_name {
-  return sprintf q[%s/%s.db], tempdir(CLEANUP => $DB_CLEANUP), sha1_hex($PROGRAM_NAME);
+  return sprintf q[%s/%s.db], $DB_DIR, sha1_hex($PROGRAM_NAME);
 }
 
 sub new {
