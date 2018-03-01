@@ -49,6 +49,7 @@ eval {
 		    id_derived_parent => undef,
 		   }
 		  ], 'create with json postdata');
+  $util->dbh->rollback;
 }
 
 {
@@ -56,10 +57,10 @@ eval {
   my $existing = t::model::derived->new({
 					 id_derived_parent => 1,
 					 id_derived_status => 2,
-					 char_dummy => "existing char",
-					 float_dummy => 42.7,
-					 int_dummy => 42,
-					 text_dummy => "some text",
+					 char_dummy        => "existing char",
+					 float_dummy       => 42.7,
+					 int_dummy         => 42,
+					 text_dummy        => "some text",
 					});
   $existing->create;
   my $obj = {
@@ -89,6 +90,7 @@ eval {
 #		    float_dummy => 42.7,
 		   }
 		  ], 'update (id in url) with json postdata');
+  $util->dbh->rollback;
 }
 
 {
@@ -138,6 +140,7 @@ eval {
 		    id_derived => 2
 		   }
 		  ], 'update (id in payload) with json postdata - should create, not update');
+  $util->dbh->rollback;
 }
 
 {
@@ -191,4 +194,5 @@ eval {
     is($created, $created2, 'created timestamp unchanged');
     isnt($last_mod, $last_mod2, 'last_modified timestamp changed');
   }
+  $util->dbh->rollback;
 }
