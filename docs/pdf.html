@@ -1,0 +1,99 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Exporting PDFs</h2>
+
+<p>
+  Exporting PDF pages is pretty easy. They can be templated in much
+  the same way as HTML. There are several ways to do it but the one I
+  use involves using TeX as an intermediate format.
+</p>
+
+<p>
+  Firstly install an appropriate TeX package for your platform. I usually use <b>tetex</b>. Then install the <b>Template::Plugin::Latex</b> plugin which serves as a wrapper around your new tetex installation. Now you're ready to go.
+</p>
+
+<p>
+  By default the ClearPress view superclass doesn't directly support
+  PDF (although this may change in future) so you need to tell your
+  view superclass a little bit more about how to serve the pages.
+</p>
+
+<code> sub decor {
+   my $self   = shift;
+   my $aspect = $self->aspect;
+
+   if($aspect eq 'read_pdf') {
+     return 0;
+   }
+
+   return $self->SUPER::decor();
+ }
+</code>
+
+<p>
+  The content-type with which to serve the page needs to be configured in init(). I like to add a useful filter for TeX entity escaping, so this is also set up here:
+</p>
+
+<code>sub init {
+  my $self   = shift;
+  my $aspect = $self->aspect || q[];
+
+  $self->add_tt_filter('tex_entity',  \&_tex_entity);
+
+  $self->{content_type} ||= ($aspect =~ /_pdf$/smx) ? 'application/pdf' : q[];
+
+  return 1;
+}
+
+sub _tex_entity {
+  my $string = shift;
+  $string    =~ s{([\\&amp;_%])}{\\$1}smxg;
+  return $string;
+}
+</code>
+
+<p>
+  Next we need to tell our view that it's ok to accept 'read_pdf' requests:
+</p>
+
+<code>sub read_pdf {
+  return 1;
+}
+</code>
+
+<p>
+  but note there's no implementation here. All the real TeX/PDF work is done in the templating. So entity_read_pdf.tt2 looks something like this:
+</p>
+
+<code>[% USE Latex; FILTER latex("pdf") -%]
+\documentclass{report}
+
+\begin{document}
+
+\title{Report for [% model.table | tex_entity %] [% model.id %]}
+\author{[% requestor.username | tex_entity %]}
+\maketitle
+
+\begin{table}
+\begin{tabular}{|r|c|}
+\hline
+
+[% FOREACH f IN model.fields -%]
+[% f | tex_entity %] & [% model.$f | tex_entity %] \\
+[% END -%]
+
+\hline
+\end{tabular}
+\caption{my table which is a very good table}
+\end{table}
+
+\end{document}
+[% END -%]
+</code>
+
+<p>
+  And that should be very nearly all there is to it. There is one downside though - you need to learn some TeX. Sorry - can't really help much there. Maybe there's a Template::Plugin::PostScript somewhere... :)
+</p>
+{% include footer.html %}

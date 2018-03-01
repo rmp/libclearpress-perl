@@ -1,0 +1,130 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Authorisation</h2>
+
+<p>
+ Authorisation is a bit of a thorny issue. On the most part
+ authorisation in ClearPress is dealt with in a
+ view's <i>authorised</i> method. To authorise all read and
+ write actions for a view one could write:
+</p>
+ {% highlight perl %}
+sub authorised {
+  return 1;
+}
+{% endhighlight %}
+
+<p>
+ Obviously this is way too simple for most applications. For many, the
+ level of authorisation needed is simply based on who the user is, if
+ they're logged in, or at most on which usergroup the user
+ is. <i>$requestor</i> usually holds the user object of the logged in
+ user, or a 'fake' public user, otherwise (faked for the simplicity of
+ making calls on a user object).
+</p>
+ {% highlight perl %}
+sub authorised {
+ my $self = shift;
+ my $util = $self->util;
+ my $requestor = $util->requestor;
+
+ if(!$requestor->id_user) {
+  #########
+  # automatically disallow anyone not logged in
+  #
+  return;
+ }
+
+ if($requestor->username() eq 'me@example.com') {
+  #########
+  # Allow me@example.com access to everything
+  #
+  return 1;
+ }
+
+ if($requestor->is_member_of('admin', 'superusers')) {
+
+  #########
+  # Allow all members of 'admin' and 'superusers' usergroups access to
+  # everything
+  #
+
+  return 1;
+ }
+
+ my $action = $self->action;
+ if($action eq 'read') {
+  #########
+  # Allow all logged in members read access to this view.
+  # REST actions = list, read, edit, add)
+  #
+  return 1;
+ }
+
+ #########
+ # Disallow all other access
+ #
+ return;
+}
+{% endhighlight %}
+
+<p>
+ As the <i>authorised</i> method is invoked for every view it's
+ possible to implement default access restrictions in an
+ <i>app::view</i> superclass and then override the method in a derived
+ class and call up to SUPER::authorised where necessary.
+</p>
+<fieldset>
+ <legend>app::view</legend>
+ {% highlight perl %}
+sub authorised {
+  my $self = shift;
+  my $util = $self->util;
+  my $requestor = $util->requestor;
+
+  if($requestor->is_member_of('admin')) {
+   return 1;
+  }
+  return;
+ }
+{% endhighlight %}
+</fieldset>
+
+<fieldset>
+ <legend>app::view::subclass</legend>
+ {% highlight perl %}
+sub authorised {
+  my $self = shift;
+  my $util = $self->util;
+  my $requestor = $util->requestor;
+
+  if($requestor->is_member_of('subclass admin')) {
+   return 1;
+  }
+
+  return $self->SUPER::authorised();
+ }
+{% endhighlight %}
+</fieldset>
+
+<p>
+ From here, authorisation can become much more complex. For example if
+ a user is only authorised for a component in a complex page, the
+ authorisation for that component needs to be placed in the template
+ for the page like so:
+</p>
+
+<fieldset>
+ <legend>read_complex.tt2</legend>
+ {% highlight html %}
+&lt;h2&gt;Page Title&lt;/h2&gt;
+&lt;p&gt;page content&lt;/p&gt;
+[%- IF requestor.is_member_of('admin') %]
+ &lt;p&gt;some admin content&lt;/p&gt;
+[%- END %]
+{% endhighlight %}
+</fieldset>
+
+{% include footer.html %}

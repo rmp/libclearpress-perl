@@ -1,0 +1,50 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>The Basics</h2>
+<p>
+ It's quick to build your first application with ClearPress. Having
+ installed from CPAN the next step is to identify your initial
+ schema and run it through the application builder:
+{% highlight perl %}
+ clearpress \
+ -new Grandkids \
+ -schema 'family(name) kid(name) kid-&gt;family' \
+ -driver SQLite
+{% endhighlight %} 
+</p>
+
+<p>
+  This example creates instructions about a SQLite database and two
+  tables within it and identifies a relationship between them.
+
+  {% highlight sql %}
+family(
+ id_family integer primary key autoincrement,
+ name varchar
+);
+
+kid(
+  id_kid integer primary key autoincrement,
+  name varchar,
+  id_family integer
+);
+{% endhighlight %}  
+</p>
+
+<p>
+ So let's create the database and add the tables.
+{% highlight shell %}
+cd Grandkids
+cat data/schema/*.sqlite | sqlite3 GrandKids
+{% endhighlight %}
+</p>
+
+<p>
+ and let's start the application: {% highlight shell %}bin/Grandkids{% endhighlight %} by
+ default the server will start on port 8080. If you don't want that
+ add {% highlight shell %}-port=&lt;port-number&gt;{% endhighlight %}
+</p>
+
+{% include footer.html %}

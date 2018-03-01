@@ -1,0 +1,105 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Working with Ajax</h2>
+
+<p>
+ If you're not sure
+ what <a href="http://en.wikipedia.org/wiki/Ajax_(programming)">AJAX</a>
+ is, in a nutshell it's the ability to load chunks of content
+ behind-the-scenes using javascript. There are many, many other
+ resources out there to tell you all about it, so I'm not going to
+ attempt to do that here.
+</p>
+
+<p>
+ Using AJAX with ClearPress is pretty simple but we'll begin at the
+ beginning. Let's assume you have a regular, non-AJAX-view for
+ displaying information for a car manufacturer:
+
+<code>package app::view::manufacturer;
+use strict;
+use warnings;
+use base qw(ClearPress::view);
+
+1;</code>
+
+ This will use the default ClearPress <i>read</i> method and look for
+ the <i>manufacturer_read.tt2</i> template on disk when serving the
+ <i>/manufacturer/1</i> URI (for manufacturer 1 of course, and
+ assuming you have a corresponding model with some data).
+</p>
+
+<p>
+ Luckily making use of the basic AJAX built-in to ClearPress is just
+ as simple. The ClearPress view superclass contains support for
+ read_ajax. What we'd like to do is display cars for that manufacturer
+ without loading each page separately. We'll make another view class:
+
+<code>package app::view::car;
+use strict;
+use warnings;
+use base qw(ClearPress::view);
+
+1;</code>
+
+</p>
+
+<p>
+ We'll import the most
+ excellent <a href="http://jquery.com/">jQuery</a> library to take
+ care of making our requests for us.
+
+ In data/config.ini:
+<code>[general]
+jsfile=http://code.jquery.com/jquery-1.4.1.min.js
+</code>
+
+and in the manufacturer_read.tt2 template we'll add this:
+
+<code>&lt;ul&gt;
+ [% FOREACH car = model.cars %]
+  &lt;li&gt;
+   &lt;a class="carlink" href="[% SCRIPT_NAME %]/car/[% car.id_car %]"&gt;
+    [% car.name %]
+   &lt;/a&gt;
+  &lt;/li&gt;
+ [% END %]
+&lt;/ul&gt;
+&lt;div id="cartarget"&gt;
+&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+ $(document).ready(function(){
+  $('a.carlink').click(function(){
+   $('#cartarget').load(this.href);
+   return false;
+  }
+ }
+&lt;/script&gt;
+</code>
+
+</p>
+
+<p>
+ So what we're saying here is that when the document has finished
+ loading, look for all anchors with a class of <i>carlink</i> and
+ configure each so that when it's clicked it loads the anchor target
+ into the <i>cartarget</i> div.
+</p>
+
+<p>
+ The eagle-eyed among you may have spotted that
+ the <i>/car/&lt;id&gt;</i> page will normally load with full header
+ &amp; footer decoration but ClearPress is smart enough to detect the
+ request is an AJAX one and serves the content without decoration.
+</p>
+
+<p>
+ The following <b>static</b> example demonstrates what this achieves.
+</p>
+
+<iframe src="examples/ajax/manufacturer.shtml" style="width:500px;height:400px"></iframe>
+
+{% include footer.html %}

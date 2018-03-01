@@ -1,0 +1,308 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Authentication</h2>
+
+<p>
+
+  As of r327 ClearPress has shipped with modules in the
+  ClearPress::authenticator:: namespace. These are helpers designed to
+  help authenticate users using various different mechanisms. At the
+  time of writing there are four mechanisms:
+
+  <dl>
+   <dt>db.pm</dt>
+   <dd>principally for MySQL-backed accounts</dd>
+
+   <dt>ldap.pm</dt>
+   <dd>for LDAP and Active Directory</dd>
+
+   <dt>passwd.pm</dt>
+   <dd>for /etc/passwd (and NIS) support</dd>
+
+   <dt>session.pm</dt>
+   <dd>for cookie-based sessions</dd>
+  </dl>
+
+  db, ldap and passwd verify username and password credentials whilst
+  session.pm verifies encrypted cookies from web-requests.
+</p>
+
+<p>
+ For simplicity let's assume the authentication procedure goes a
+ little like this:
+
+ <ol>
+  <li>Registered user "U" comes to app</li>
+  <li>U enters username and password and submits login form</li>
+  <li>username and password are checked in database (db.pm)</li>
+  <li>app serves welcome page with encrypted session cookie containing username+password</li>
+  <li>Further page requests from U return the session cookie</li>
+  <li>Each further page request decodes the session cookie and uses the username contained within (session.pm)</li>
+ </ol>
+</p>
+
+<p>
+ As well as the authenticator modules there are several other components required:
+ <ol>
+  <li>login page</li>
+  <li>logout page</li>
+  <li>a modified decor.pm for cookie handling</li>
+  <li>a 'user' data-model object</li>
+  <li>a modified controller.pm for building information about the requestor (the 'user' data model corresponding to the authenticated user)</li>
+  <!--li>user registration / account management (a whole other discussion)</li-->
+ </ol>
+</p>
+
+<fieldset>
+ <legend>login</legend>
+ {% highlight perl %}
+#!/usr/bin/env perl -T
+use strict;
+use warnings;
+use myapp::decor qw($AUTH_COOKIE $TOPSECRETKEY);
+use ClearPress::authenticator::session;
+use ClearPress::authenticator::db;
+
+main();
+exit;
+
+sub main {
+  my $decor    = myapp::decor-&gt;new();
+  my $cgi      = $decor-&gt;cgi();
+  my $username = $cgi-&gt;param('cred_0');
+  my $password = $cgi-&gt;param('cred_1');
+
+  if(!$username || !$password) {
+    #########
+    # force a logout
+    #
+    my $cookie = $cgi-&gt;cookie(
+      -name    =&gt; $AUTH_COOKIE,
+      -value   =&gt; q[],
+      -expires =&gt; '-1d',
+    );
+
+    $decor-&gt;username(q[]);
+    print qq[Set-Cookie: $cookie\n];
+    print $decor-&gt;header();
+    print login_form($decor);
+    print $decor-&gt;footer();
+    return 1;
+  }
+
+  my $db = ClearPress::authenticator::db-&gt;new();
+  my $user_info = $db-&gt;authen_credentials({
+    username =&gt; $username,
+    password =&gt; $password,
+  });
+
+  if($user_info) {
+    $decor-&gt;username($username);
+    my $session     = ClearPress::authenticator::session-&gt;new({key => $TOPSECRETKEY});
+    my $encoded     = $session-&gt;encode_token($user_info);
+    my $auth_cookie = $cgi-&gt;cookie(
+      -name  =&gt; $AUTH_COOKIE,
+      -value =&gt; $encoded,
+    );
+
+    print qq[Set-Cookie: $auth_cookie\n];
+
+    print $decor-&gt;header();
+    print qq[&lt;h2&gt;Welcome back, $username&lt;/h2&gt;];
+    print $decor-&gt;footer();
+    return 1;
+  }
+
+  #########
+  # force a logout
+  #
+  my $cookie = $cgi-&gt;cookie(
+    -name    =&gt; $AUTH_COOKIE,
+    -value   =&gt; q[],
+    -expires =&gt; '-1d',
+  );
+
+  $decor-&gt;username(q[]);
+
+  print qq[Set-Cookie: $cookie\n];
+  print $decor-&gt;header();
+  print q[&lt;h2&gt;Login failed. Please try again&lt;/h2&gt;];
+  print login_form($decor);
+  print $decor-&gt;footer();
+
+  return;
+}
+
+sub login_form {
+  my $decor = shift;
+
+  return <<'EOT';
+&lt;h2&gt;Login with a registered account&lt;/h2&gt;
+&lt;fieldset&gt;
+ &lt;legend&gt;Login&lt;/legend&gt;
+ &lt;form method="post" action="$ENV{SCRIPT_NAME}"&gt;
+  &lt;p&gt;
+   &lt;label for="cred_0"&gt;Email address&lt;/label&gt;
+   &lt;input type="text" name="cred_0" id="cred_0"/&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+   &lt;label for="cred_1"&gt;Password&lt;/label&gt;
+   &lt;input type="password" name="cred_1" id="cred_1"/&gt;
+  &lt;/p&gt;
+  &lt;p class="actions"&gt;&lt;input type="submit" value="Log in"/&gt;&lt;/p&gt;
+ &lt;/form&gt;
+&lt;/fieldset&gt;
+EOT
+}
+{% endhighlight %}
+</fieldset>
+
+<fieldset>
+ <legend>logout</legend>
+ {% highlight perl %}
+#!/usr/bin/perl -T
+use strict;
+use warnings;
+use myapp::decor qw($AUTH_COOKIE);
+
+my $decor  = myapp::decor->new();
+my $cgi    = $decor-&gt;cgi();
+my $cookie = $cgi->cookie(
+                          -name    =&gt; $AUTH_COOKIE,
+                          -value   =&gt; q[],
+                          -expires =&gt; '-1d',
+                         );
+$decor->username(q[]);
+print qq[Set-Cookie: $cookie\n];
+print $decor-&gt;header();
+print q[&lt;h2&gt;Thanks for visiting, come again soon!&lt;/h2&gt;];
+print $decor-&gt;footer();
+{% endhighlight %}
+</fieldset>
+
+<fieldset>
+ <legend>myapp/decor.pm</legend>
+ <p>Strictly this should inherit from authdecor.pm but at the time of writing it's not quite ready yet</p>
+ {% highlight perl %}
+package myapp::decor;
+use strict;
+use warnings;
+use base qw(Exporter ClearPress::decorator);
+use ClearPress::authenticator::session;
+use Readonly;
+
+Readonly::Scalar our $AUTH_COOKIE  =&gt; 'myapp_sso';
+Readonly::Scalar our $TOPSECRETKEY =&gt; 'top_secret_key_goes_here';
+our @EXPORT_OK = qw($AUTH_COOKIE $TOPSECRETKEY);
+
+sub username {
+  my ($self, $username) = @_;
+
+  if(defined $username) {
+    $self-&gt;{username} = $username;
+  }
+
+  if(defined $self-&gt;{username}) {
+    return $self-&gt;{username};
+  }
+
+  my $auth   = ClearPress::authenticator::session-&gt;new({
+                                                        key =&gt; $TOPSECRETKEY,
+                                                       });
+  my $cgi    = $self-&gt;cgi();
+  my $cookie = $cgi-&gt;cookie($AUTH_COOKIE);
+
+  if(!$cookie) {
+    #########
+    # no auth cookie. don't bother trying to decrypt
+    #
+    return;
+  }
+
+  my $ref = $auth-&gt;authen_token($cookie);
+  if(!$ref) {
+    #########
+    # Failed to authenticate session token
+    #
+    return;
+  }
+
+  return $ref-&gt;{username};
+}
+1;
+ {% endhighlight %}
+</fieldset>
+
+<fieldset>
+ <legend>myapp/model/user.pm</legend>
+ {% highlight perl %}
+package myapp::model::user;
+use strict;
+use warnings;
+use base qw(ClearPress::model);
+
+__PACKAGE__-&gt;mk_accessors(fields());
+
+sub fields {
+  return qw(id_user username realname pass);
+}
+
+sub secondary_key {
+  #########
+  # support load-by-username as well as the default load-by-id
+  #
+  return 'username';
+}
+1;
+ {% endhighlight %}
+</fieldset>
+
+<fieldset>
+ <legend>myapp/controller.pm (partial)</legend>
+
+ <p>There can often be many 'use' statements at the top of the
+ controller.pm - omitted here for clarity</p>
+
+ {% highlight perl %}
+package myapp::controller;
+use strict;
+use warnings;
+use base qw(ClearPress::controller);
+
+sub decorator {
+  my ($self, $util) = @_;
+  my $decor         = myapp::decor->new({
+                                         stylesheet =&gt; [qw(/myapp.css)],
+                                        });
+
+  my $requestor = myapp::model::user->new({
+                                           util     =&gt; $util,
+                                           username =&gt; $decor->username,
+                                          });
+  $util-&gt;requestor($requestor);
+  return $decor;
+}
+
+1;
+ {% endhighlight %}
+</fieldset>
+
+<h3>Caveats</h3>
+<p>
+ <ul>
+  <li>Symmetric encryption is performed using a secret key known to the webserver. If the key is compromised then it needs to be changed</li>
+  <li>If another user copies the cookie they will be authenticated as the user to whom the cookie belongs. Hence the use of SSL encrypting web traffic is advised</li>
+  <li>A few further measures may be used to improve security:
+   <ol>
+    <li>Use a private key per-user</li>
+    <li>Rotate the key per session</li>
+    <li>Time-out sessions after periods of inactivity</li>
+    <li>Re-verify periodically against the database in case an old cookie has been stolen</li>
+    <li>... and probably lots of other things ...</li>
+   </ol>
+  </li>
+ </ul>
+</p>
+{% include footer.html %}

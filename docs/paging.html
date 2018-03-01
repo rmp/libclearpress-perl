@@ -1,0 +1,171 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Paging Lists</h2>
+
+<p>
+ Commonly in listings you'll want to add paging. This can be quite a
+ nuisance (in particular if the results are lists of searches or have
+ customisable parameters which slice and dice the result set in
+ different ways). ClearPress takes some (but not all) of that pain
+ away.
+</p>
+
+<h3>Model</h3>
+<p>
+ Firstly the data model needs to have support for a paged list. In
+ this case we'll take a start for the page, a length of the page and
+ an order-by column, all of which will be passed through to the
+ database layer as part of the query.
+</p>
+
+<code>sub bounded_users {
+  my ($self, $start, $len, $orderby) = @_;
+  my $pkg     = ref $self;
+  my $order   = $orderby ? qq[ORDER BY $orderby]: q[];
+  my $query   = qq[SELECT @{[join q[, ], $pkg->fields]}
+                   FROM   @{[$pkg->table]}
+                   $order];
+  my $util    = $self->util;
+  my $driver  = $util->driver;
+  my $bounded = $driver->bounded_select($query, $len, $start);
+
+  return $self->gen_getarray($pkg, $bounded);
+}</code>
+
+<p>
+ Note that the limit with start and len isn't built in SQL - this is
+ left to the driver layer, because different database engines do this
+ in different ways.
+</p>
+
+<h3>View</h3>
+<p>
+ The view is given support for handling the additional CGI parameters
+ for paging. These are checked with rudimentary validation and passed
+ through to the model's new paging call, and also stuffed in to the
+ model (bad encapsulation!) for the template to pick up in a moment.
+</p>
+
+<code>use Readonly;
+
+Readonly::Scalar our $MAX_LEN => 50;
+Readonly::Scalar our $MIN_LEN => 10;
+
+sub list {
+  my $self    = shift;
+  my $util    = $self->util;
+  my $cgi     = $util->cgi;
+  my $start   = $cgi->param('start');
+  my $len     = $cgi->param('len');
+  my $orderby = $cgi->param('orderby');
+  my $model   = $self->model;
+
+  my $safe_orderby = $model->secondary_key;
+  if($orderby) {
+    for my $f ($model->fields) {
+      if($f eq $orderby) {
+        $safe_orderby = $f;
+      }
+    }
+  }
+
+  if(!$len || $len < $MIN_LEN) {
+    $len = $MIN_LEN;
+  }
+
+  if(!$start || $start < 0) {
+    $start = 0;
+  }
+
+  if($len > $MAX_LEN) {
+    $len = $MAX_LEN;
+  }
+
+  $model->{users}   = $model->bounded_users($start, $len, $safe_orderby);
+  $model->{start}   = $start;
+  $model->{len}     = $len;
+  $model->{orderby} = $orderby;
+
+  return 1;
+}</code>
+
+<h3>Template</h3>
+
+<code>Displaying [% model.len %] of [% model.count_users %] users.
+
+[%- USE Math %]
+[%- SET pager_limit = model.len ;
+    SET pager_start = model.start ;
+    SET pager_max = model.count_users ;
+    SET pager_orderby = model.orderby %]
+[%- SET p_last = pager_limit * Math.int(pager_max / pager_limit); %]
+[%- SET p_last = p_last - pager_limit IF p_last == pager_max %]
+[%- SET p_prev = pager_start - pager_limit %]
+[%- SET p_prev = 0 IF p_prev &lt; 0 %]
+[%- SET p_next = pager_start + pager_limit %]
+[%- SET p_next = p_last IF p_next &gt; p_last %]
+[%- SET pager_extra = "orderby=$pager_orderby" %]
+
+&lt;div class="pager"&gt;
+&lt;form id="pager_limit_selection" method="get" action="#"&gt;
+ &lt;input type="hidden" name="start"   value="[% pager_start   | url %]"/&gt;
+ &lt;input type="hidden" name="orderby" value="[% model.orderby | url %]"/&gt;
+
+&lt;label for="len"&gt;Display &lt;select id="len" name="len"&gt;
+[%- FOREACH i = [10, 20, 30, 40, 50] %]
+ &lt;option value="[%i%]"[% IF i==pager_limit %] selected="selected"[% END %]&gt;
+  [%i%]
+ &lt;/option&gt;
+[%- END %]
+&lt;/select&gt; entries per page&lt;/label&gt;
+ &lt;a href="?[% pager_extra %];start=0;len=[% pager_limit %]"&gt;&lArr;&lt;/a&gt;
+ &lt;a href="?[% pager_extra %];start=[% p_prev %];len=[% pager_limit %]"&gt;&larr;&lt;/a&gt;
+ [% 1 + pager_start / pager_limit %] / [% 1 + p_last / pager_limit %]
+ &lt;a href="?[% pager_extra %];start=[% p_next %];len=[% pager_limit %]"&gt;&rarr;&lt;/a&gt;
+ &lt;a href="?[% pager_extra %];start=[% p_last %];len=[% pager_limit %]"&gt;&rArr;&lt;/a&gt;
+&lt;/form&gt;
+&lt;/div&gt;
+&lt;script type="text/javascript"&gt;
+ $('#len').change(function(){$('#pager_limit_selection').submit()});
+&lt;/script&gt;
+
+&lt;table class="fixed"&gt;
+ &lt;caption&gt;Users&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th&gt;
+    &lt;a href="?start=[% pager_start %];len=[% pager_limit %];orderby=id_user"&gt;
+     Id
+    &lt;/a&gt;
+   &lt;/th&gt;
+   &lt;th&gt;
+    &lt;a href="?start=[% pager_start %];len=[% pager_limit %];orderby=username"&gt;
+     Username
+    &lt;/a&gt;
+   &lt;/th&gt;
+   &lt;th&gt;
+    &lt;a href="?start=[% pager_start %];len=[% pager_limit %];orderby=realname"&gt;
+     Realname
+    &lt;/a&gt;
+   &lt;/th&gt;
+   &lt;th&gt;&lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+[%- FOREACH user = model.users %]
+[%- SET sub = user.active_subscription %]
+[%- SET pkg = sub.package %]
+  &lt;tr class="[% loop.parity %]"&gt;
+   &lt;td&gt;[% user.id_user  %]&lt;/td&gt;
+   &lt;td&gt;[% user.username %]&lt;/td&gt;
+   &lt;td&gt;[% user.realname %]&lt;/td&gt;
+   &lt;td&gt;&lt;a href="[% SCRIPT_NAME %]/user/[% user.id_user %]"&gt;details&lt;/a&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+[%- END %]
+ &lt;/tbody&gt;
+&lt;/table&gt;
+</code>
+
+{% include footer.html %}

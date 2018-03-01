@@ -1,0 +1,96 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Views</h2>
+
+<p>
+ Views inherit and extend functionality of the ClearPress::view
+ superclass. At the very minimum, application views can contain as
+ little as no code, just the reference to their superclass for
+ inheritance purposes.
+ <code>package Grandkids::view::kid;
+use strict;
+use warnings;
+use base qw(ClearPress::view);
+
+1;
+</code>
+</p>
+
+<p>
+ The superclass defines all of the basic functionality to support
+ extended CRUD mechanisms (create, read, update, delete, list, edit,
+ add) for XML, JSON, HTML and AJAX/HTML fragments.
+</p>
+
+<p>
+ Whilst basic functionality gets you part-way there it's often not
+ quite enough for more complicated scenarios. To take care of these
+ situations any method implemented in the view with the right
+ systematic name will override the method of the same name in the
+ superclass, e.g. list, list_xml, read, read_png, create_json etc.
+</p>
+
+<p>
+ Within these methods it is possible to access all of the useful bits
+ for processing a request and buildig a response.
+</p>
+
+<h3>Accessing CGI</h3>
+<p>
+ When processing a web request it's usually handy to have any CGI
+ parameters. To get hold of them grab the instance of CGI.pm:
+
+ <code>sub list {
+ my $self = shift;
+ my $util = $self->util;
+ my $cgi  = $util->cgi;
+ ...
+}</code>
+</p>
+
+<h3>Accessing the data model</h3>
+<p>
+ Almost all requests need to do something with one or more data models
+ so at the very least you'll need to locate the one corresponding to
+ this view method before you do something with it:
+
+ <code>sub list {
+ my $self  = shift;
+ my $model = $self->model;
+ ...</code>
+</p>
+
+<h3>Putting it together</h3>
+<p>
+ Let's say you have a small cascade of related objects, let's say a
+ family with a child, which need to be built from the results of a
+ POSTed form and saved together in one transaction. Assuming we're in
+ <i>Grandkids::view::family</i>...
+
+ <code>sub create {
+ my $self   = shift;
+ my $util   = $self->util;
+ my $cgi    = $util->cgi;
+ my $family = $self->model;
+
+ my $f_name = $cgi->param('name');
+ $family->name($f_name);
+
+ my $c_name = $cgi->param('child_name');
+ my $child = Grandkids::model::child->new({name => $c_name});
+
+ $family->children($child);
+
+ return $family->create();
+}</code>
+
+ This makes quite a lot of other assumptions too - the form posting to
+ this code has to contain both <i>name</i> and <i>child_name</i>
+ fields, and only one of each and the family model's <i>create</i>
+ method needs to check for children to save as part of its
+ transaction.
+</p>
+
+{% include footer.html %}

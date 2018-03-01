@@ -1,0 +1,100 @@
+---
+# this is an empty front matter
+---
+{% include header.html %}
+<h2>Streaming Views</h2>
+<p>
+ One of the limitations imposed by the standard ClearPress
+ templated-view mechanism is that an entire response needs to be
+ processed <i>en-bloc</i> - that is to say, completed on the server
+ all-at-once then returned to the client in one go. This naturally
+ suits many, if not most, real-world examples which involve a
+ relatively quick, or small single page response which can be served
+ in this way. However there are other cases which require a bit more
+ care. If a page takes longer than around 5 seconds to start returning
+ content, the user is likely to become bored of waiting. So if it is
+ possible for the application to <i>start</i> doing the work and begin
+ to serve the response to the user before it finishes doing the work,
+ it should result in a more pleasant user-experience. This act of
+ simultaneously processing and serving content is often referred to as
+ streaming.
+</p>
+
+<p>
+ Streamed content of course is not quite as simple as block-based
+ templating. Some extra care is required to allow for example,
+ database work to occur in between serving chunks of content back to
+ the user. Thankfully ClearPress tries to reduce these burdens.
+</p>
+
+<p>
+ To enable streaming for a view, first define the method
+ <code>sub streamed_aspects { }</code>
+ in the view class. This overrides the same method in the superclass
+ and allows us to return an array of the aspect names we want to
+ stream. Lets do that for a listing:
+
+ <code>sub streamed_aspects {
+ return [qw(list)];
+}
+</code>
+</p>
+
+<p>
+ Ok, now we need to define the method ourselves to actually do the work. As we're likely to be streaming copies of the same template, just with different data, we can still make use of the template toolkit, but we need to handle the chunks ourselves. A simple way to do this is using three files, a header, a footer and the repeated block.
+<h3>kid_list_header.tt2</h3>
+<code> &lt;table&gt;
+  &lt;caption&gt;List of kids&lt;/caption&gt;
+  &lt;thead&gt;
+   &lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;name&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tfoot&gt;
+   &lt;tr&gt;&lt;td colspan="2"&gt;some content&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tfoot&gt;
+  &lt;tbody&gt;
+</code>
+
+<h3>kid_list_footer.tt2</h3>
+<code>  &lt;/tbody&gt;
+ &lt;/table&gt;
+</code>
+
+<h3>kid_list_row.tt2</h3>
+<code> &lt;tr&gt;&lt;td&gt;[% kid.id %]&lt;/td&gt;&lt;td&gt;[% kid.name %]&lt;/td&gt;&lt;/tr&gt;
+</code>
+</p>
+
+<p>
+ Great! That's the templates taken care of. You should be able to see
+ what we're about to do in the view module.
+
+ <h3>lib/Grandkids/view/kid.pm</h3>
+ <code>sub list {
+  my $self = shift;
+
+  $self->process_template('kid_list_header.tt2');
+
+  my $kids = $self->model->kids();
+  for my $kid (@{$kids}) {
+    $self->process_template('kid_list_row.tt2', {kid=>$kid});
+  }
+
+  $self->process_template('kid_list_footer.tt2');
+
+  return 1;
+}
+</code>
+
+ Ok, so we are doing our main database query here in one lump. As an
+ exercise you could try generating a method like this which uses a
+ two-argument SQL LIMIT or cursors to iterate over sets of rows using
+ less memory.
+</p>
+
+<p>
+ Naturally it is also possible to stream responses other than the
+ standard text/html. Streaming should work fine with XML or text/plain
+ for example.
+</p>
+
+{% include footer.html %}
