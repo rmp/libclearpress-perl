@@ -17,7 +17,7 @@ use POSIX qw(strftime);
 use Readonly;
 use JSON;
 
-our $VERSION = q[2018.03.01];
+our $VERSION = q[2018.3.1];
 
 Readonly::Scalar our $DBI_CACHE_OVERWRITE => 3;
 
