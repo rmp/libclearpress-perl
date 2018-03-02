@@ -17,10 +17,11 @@ use English qw(-no_match_vars);
 use Test::More;
 use HTML::PullParser;
 use JSON;
+use HTTP::Headers;
 
 Readonly::Array our @EXPORT_OK => qw(is_xml is_json is_xls is_txt);
 
-our $VERSION = q[477.1.5];
+our $VERSION = q[2018.03.01];
 
 sub new {
   my ($class, $ref_in) = @_;
@@ -65,12 +66,26 @@ sub new {
 
   $ref->{util} = $util;
 
-  my $str;
-  my $io = tie *STDOUT, 'IO::Scalar', \$str;
+  my ($stdout, $stderr);
+  my $io_stdout = tie *STDOUT, 'IO::Scalar', \$stdout;
+  my $io_stderr;
+  if(wantarray) {
+    $io_stderr = tie *STDOUT, 'IO::Scalar', \$stderr;
+  }
 
   ClearPress::controller->handler($util);
 
-  return $str;
+  if(wantarray) {
+    my ($head, $body) = split m{\n\n}smix, $stdout, 2;
+    my $headers = HTTP::Headers->new;
+    for my $header (split m{\n}smix, $head) {
+      my ($k, $v) = split m{\s*:\s*}smix, $header, 2;
+      $headers->push_header($k, $v);
+    }
+    return $headers, $body, $stderr;
+  }
+
+  return $stdout;
 }
 
 sub is_xml {

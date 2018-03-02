@@ -16,7 +16,7 @@ use CGI;
 use IO::Capture::Stderr;
 use Data::UUID;
 
-our $VERSION = q[477.1.5];
+our $VERSION = q[2018.03.01];
 
 our $DEBUG_UTIL           = 0;
 our $DEFAULT_TRANSACTIONS = 1;
@@ -29,9 +29,9 @@ BEGIN {
   use constant MP2 => eval { require Apache2::RequestUtil; Apache2::RequestUtil->can('request') && $Apache2::RequestUtil::VERSION > 1.99 }; ## no critic (ProhibitConstantPragma, RequireCheckingReturnValueOfEval)
 
   if(MP2) {
-    carp q[Using request-based singletons [mod_perl2 found]];
+    $DEBUG_UTIL && carp q[Using request-based singletons [mod_perl2 found]];
   } else {
-    carp q[Using process-based singletons [mod_perl2 not found]];
+    $DEBUG_UTIL && carp q[Using process-based singletons [mod_perl2 not found]];
   }
 }
 

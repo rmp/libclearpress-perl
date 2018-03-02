@@ -15,8 +15,9 @@ use Lingua::EN::Inflect qw(PL);
 use Lingua::EN::PluralToSingular qw(to_singular);
 use POSIX qw(strftime);
 use Readonly;
+use JSON;
 
-our $VERSION = q[477.1.5];
+our $VERSION = q[2018.03.01];
 
 Readonly::Scalar our $DBI_CACHE_OVERWRITE => 3;
 
@@ -748,6 +749,19 @@ sub zdate {
 
 sub isodate {
   return strftime q(%Y-%m-%d %H:%M:%S), gmtime;
+}
+
+sub as_json {
+  my ($self, $cb) = @_;
+  $self->read;
+  my $obj = {
+             map { $_ => $self->{$_} } ($self->fields)
+            };
+  if($cb) {
+    $cb->($obj);
+  }
+
+  return JSON->new->encode($obj);
 }
 
 1;
