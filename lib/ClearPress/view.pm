@@ -24,7 +24,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[2018.03.01];
+our $VERSION = q[2018.3.1];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
