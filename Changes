@@ -1,3 +1,9 @@
+libclearpress-perl (2018.3.1) stable; urgency=low
+
+  * added model->as_json(callback)
+  * debugged sqlite transaction problem in tests
+  * updated versioning scheme
+
 libclearpress-perl (477.1.5) stable; urgency=low
 
   * util->cleanup explicitly destroys db driver object (and correctly rolls back/disconnects)
