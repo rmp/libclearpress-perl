@@ -96,7 +96,7 @@ sub new {
     #########
     # ignore any error
     #
-    carp qq[Failed per-request rollback on fresh database handle: $EVAL_ERROR];
+#    carp qq[Failed per-request rollback on fresh database handle: $EVAL_ERROR];
   };
 
   return $self;
@@ -556,6 +556,7 @@ sub handler {
     # 3. emit headers
     # 4. hand off to error response handler
     #
+    $EVAL_ERROR =~ s{[\r\n]+}{ }smxg;
     carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $viewobject->output_reset(); # reset headers on the original view
     $self->errstr($EVAL_ERROR);
