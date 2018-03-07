@@ -12,7 +12,7 @@ use base qw(Class::Accessor);
 use Readonly;
 use Carp;
 
-our $VERSION = q[2018.3.1];
+our $VERSION = q[2018.3.7];
 
 our $DEFAULTS = {
 		 meta_content_type => 'text/html',
@@ -155,6 +155,11 @@ EOT
 }
 
 sub footer {
+  my ($self, @args) = @_;
+  return $self->site_footer(@args);
+}
+
+sub site_footer {
   return <<'EOT';
   </body>
 </html>
