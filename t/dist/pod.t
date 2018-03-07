@@ -7,7 +7,7 @@ use Test::More;
 use strict;
 use warnings;
 
-our $VERSION = q[2018.3.1];
+our $VERSION = q[2018.3.7];
 
 eval {
   require Test::Pod;

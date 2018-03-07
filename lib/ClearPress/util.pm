@@ -16,7 +16,7 @@ use CGI;
 use IO::Capture::Stderr;
 use Data::UUID;
 
-our $VERSION = q[2018.3.1];
+our $VERSION = q[2018.3.7];
 
 our $DEBUG_UTIL           = 0;
 our $DEFAULT_TRANSACTIONS = 1;
@@ -202,10 +202,6 @@ sub cleanup {
   my $singleton_key = $self->_singleton_key;
 
   delete $INSTANCES->{$singleton_key};
-
-  if(exists $self->{dbh}) {
-    $self->{dbh}->disconnect();
-  }
 
   if(exists $self->{driver}) {
     delete $self->{driver}; # should trigger driver::DESTROY

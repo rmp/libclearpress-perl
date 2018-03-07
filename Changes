@@ -1,3 +1,7 @@
+libclearpress-perl (2018.3.7) stable; urgency=low
+
+  * corrected documented but unimplemented decorator site_footer
+
 libclearpress-perl (2018.3.1) stable; urgency=low
 
   * added model->as_json(callback)
