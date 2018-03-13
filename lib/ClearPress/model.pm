@@ -17,7 +17,7 @@ use POSIX qw(strftime);
 use Readonly;
 use JSON;
 
-our $VERSION = q[2018.3.7];
+our $VERSION = q[2018.3.13];
 
 Readonly::Scalar our $DBI_CACHE_OVERWRITE => 3;
 
@@ -753,7 +753,7 @@ sub isodate {
 
 sub as_json {
   my ($self, $cb) = @_;
-  $self->read;
+#  $self->read;
   my $obj = {
              map { $_ => $self->{$_} } ($self->fields)
             };
