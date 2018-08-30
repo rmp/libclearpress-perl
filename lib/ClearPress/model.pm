@@ -819,7 +819,7 @@ $Revision: 470 $
 
   my $oInstance = ClearPress::model::subclass->new(10);
 
-=head2 util - ClearPress::util object
+=head2 util - ClearPress::util (or subclass) object
 
   my $oUtil = ClearPress::model::subclass->util();
 

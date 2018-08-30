@@ -10,7 +10,6 @@ use warnings;
 use base qw(Class::Accessor);
 use Template;
 use Template::Filters;
-use ClearPress::util;
 use Carp;
 use English qw(-no_match_vars);
 use POSIX qw(strftime);
@@ -31,6 +30,11 @@ our $DEBUG_L10N          = 0;
 our $TEMPLATE_CACHE      = {};
 our $LEXICON_CACHE       = {};
 our $TRAP_REDIR_OVERFLOW = 0; # set to non-zero value to cut-off at that many bytes
+
+Readonly::Scalar our $DEFAULT_PROTO_PORTS => {
+                                              http => 80,
+                                              https => 443,
+                                             };
 
 __PACKAGE__->mk_accessors(qw(util model action aspect content_type entity_name autoescape charset decorator headers));
 
@@ -385,6 +389,18 @@ sub process_template { ## no critic (Complexity)
   my $http_host   = ($xfh ? $xfh : $ENV{HTTP_HOST}) || q[localhost];
   my $http_port   = ($xfh ? $xfp : $ENV{HTTP_PORT}) || q[];
   my $http_proto  = $ENV{HTTP_X_FORWARDED_PROTO}    || $ENV{HTTPS}?q[https]:q[http];
+
+  #########
+  # if default port for protocol, skip addition of the port
+  #
+  for my $default_proto (keys %{$DEFAULT_PROTO_PORTS}) {
+    if(($default_proto eq lc $http_proto) &&
+       $http_port == $DEFAULT_PROTO_PORTS->{$default_proto}) {
+      $http_port = q[];
+      last;
+    }
+  }
+
   my $href        = sprintf q[%s://%s%s%s%s],
 			    $http_proto,
 			    $http_host,
@@ -1160,8 +1176,6 @@ e.g.
 =item HTML::Entities
 
 =item XML::Simple
-
-=item ClearPress::util
 
 =item Carp
 
