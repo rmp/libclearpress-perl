@@ -7,7 +7,7 @@ use Test::More;
 use strict;
 use warnings;
 
-our $VERSION = q[2018.3.13];
+our $VERSION = q[2018.08.30];
 
 eval "use Test::Pod::Coverage 1.00";
 plan skip_all => "Test::Pod::Coverage 1.00 required for testing POD coverage" if $@;
