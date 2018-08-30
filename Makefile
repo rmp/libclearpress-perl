@@ -1,6 +1,6 @@
-MAJOR    ?= 2018
-MINOR    ?= 3
-SUB      ?= 13
+MAJOR    ?= $(shell date +%Y)
+MINOR    ?= $(shell date +%m)
+SUB      ?= $(shell date +%d)
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i
