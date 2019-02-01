@@ -23,7 +23,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[2018.08.30];
+our $VERSION = q[2019.02.01];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
@@ -492,17 +492,20 @@ sub _populate_from_cgi {
   # parse new-style POST payload
   # todo: look at PUTDATA as well
   #
-  my $postdata = $cgi->param('POSTDATA');
-  if($postdata) {
-    utf8::decode($postdata);
+  my ($method) = $ENV{REQUEST_METHOD} =~ /(PUT|POST)/smix;
+  my $PDATA    = sprintf q[%sDATA], (uc $method || 'POST');
+  my $reqdata  = $cgi->param($PDATA);
+
+  if($reqdata) {
+    utf8::decode($reqdata);
     eval {
       my $json = JSON->new->utf8;
       eval {
-        $params = $json->decode($postdata);
+        $params = $json->decode($reqdata);
         1;
 
       } or do {
-        $params = XMLin($postdata);
+        $params = XMLin($reqdata);
       };
 
       for my $k (%{$params}) {
@@ -518,7 +521,7 @@ sub _populate_from_cgi {
       #########
       # Not an XML-formatted POST body. Ignore for now.
       #
-      carp q[Got error while parsing POSTDATA: ].$EVAL_ERROR;
+      carp qq[Got error while parsing $PDATA: ].$EVAL_ERROR;
     };
   }
 

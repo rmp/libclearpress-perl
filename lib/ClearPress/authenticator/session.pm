@@ -13,7 +13,7 @@ use Carp;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use YAML::Tiny qw(Load Dump);
 
-our $VERSION = q[2018.08.30];
+our $VERSION = q[2019.02.01];
 
 Readonly::Scalar our $KEY => q[topsecretkey];
 

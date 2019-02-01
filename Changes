@@ -1,3 +1,7 @@
+libclearpress-perl (2019.2.01) stable; urgency=low
+
+  * correctly process PUTDATA for PUT requests (as with POSTDATA for POST requests)
+
 libclearpress-perl (2018.3.13) stable; urgency=low
 
   * do not ->read during model->as_json - race condition/data corruption/invalid logic flow
