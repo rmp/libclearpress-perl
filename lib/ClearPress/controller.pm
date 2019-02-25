@@ -171,7 +171,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   my ($aspect)      = $pi =~ m{;(\S+)}smx;
 
-  if($action eq 'read' && !$id && !$aspect) {
+  if(($action eq 'read' || $action eq 'head') && !$id && !$aspect) {
     $aspect = 'list';
   }
 
@@ -258,7 +258,6 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
 
     } else {
       $tmp = "${action}_$id";
-
     }
 
     $tmp =~ s/^read/list/smx;
@@ -317,7 +316,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
     }
   }
 
-  if($aspect !~ /^(?:create|read|update|delete|add|list|edit|options)/smx) {
+  if($aspect !~ /^(?:create|read|update|delete|add|list|edit|options|head)/smx) {
     my $action_extended = $action;
     if(!$id) {
       $action_extended = {

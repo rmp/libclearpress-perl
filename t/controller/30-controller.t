@@ -8,7 +8,7 @@ use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 109;
+  plan tests => 113;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
@@ -132,25 +132,32 @@ my $T = [
 	 ['GET',  '/thing/released/cluster%2Ffoo.json', '', $json, 'read',   'thing', 'read_released_json', 'cluster/foo'],
 	 ['POST', '/thing/released/cluster/foo.json',   '', $json, 'update', 'thing', 'update_released_cluster_json', 'foo'],
 	 ['POST', '/thing/released/cluster%2Ffoo.json', '', $json, 'update', 'thing', 'update_released_json', 'cluster/foo'],
+
+         ['HEAD', '/thing13/telemetry/1234.json',       '', $json, 'head',   'thing13', 'head_telemetry_json', '1234'],
+         ['HEAD', '/thing13/telemetry.json',            '', $json, 'head',   'thing13', 'head_telemetry_json', 0],
+         ['HEAD', '/thing13/telemetry/1234',            '', $json, 'head',   'thing13', 'head_telemetry', '1234'],
+         ['HEAD', '/thing13/telemetry',                 '', $json, 'head',   'thing13', 'head_telemetry', 0],
         ];
 
 {
   no warnings;
-  *{t::view::thing2::list_method}           = sub { return 1; };
-  *{t::view::thing3::list_avg_by_pos}       = sub { return 1; };
-  *{t::view::thing4::list_avg_by_pos_xml}   = sub { return 1; };
-  *{t::view::thing5::list_heatmap_png}      = sub { return 1; };
-  *{t::view::thing6::create_batch_xml}      = sub { return 1; };
-  *{t::view::thing7::create_batch_ajax}     = sub { return 1; };
-  *{t::view::thing8::create_batch_xml}      = sub { return 1; };
-  *{t::view::thing9::list_heatmap}          = sub { return 1; };
-  *{t::view::thing10::create_heatmap_png}   = sub { return 1; };
-  *{t::view::thing11::list_overridden_ajax} = sub { return 1; };
-  *{t::view::thing12::list_txt_ajax}        = sub { return 1; };
-  *{t::view::foo::test::list_test_xml}      = sub { return 1; }; # packagemapped
+  *{t::view::thing2::list_method}              = sub { return 1; };
+  *{t::view::thing3::list_avg_by_pos}          = sub { return 1; };
+  *{t::view::thing4::list_avg_by_pos_xml}      = sub { return 1; };
+  *{t::view::thing5::list_heatmap_png}         = sub { return 1; };
+  *{t::view::thing6::create_batch_xml}         = sub { return 1; };
+  *{t::view::thing7::create_batch_ajax}        = sub { return 1; };
+  *{t::view::thing8::create_batch_xml}         = sub { return 1; };
+  *{t::view::thing9::list_heatmap}             = sub { return 1; };
+  *{t::view::thing10::create_heatmap_png}      = sub { return 1; };
+  *{t::view::thing11::list_overridden_ajax}    = sub { return 1; };
+  *{t::view::thing12::list_txt_ajax}           = sub { return 1; };
+  *{t::view::foo::test::list_test_xml}         = sub { return 1; }; # packagemapped
   *{t::view::thing11::options_overridden_ajax} = sub { return 1; };
   *{t::view::thing12::options_txt_ajax}        = sub { return 1; };
   *{t::view::foo::test::options_test_xml}      = sub { return 1; }; # packagemapped
+  *{t::view::thing13::head_telemetry_json}     = sub { return 1; }; # head
+  *{t::view::thing13::head_telemetry}          = sub { return 1; }; # head
 }
 
 {
