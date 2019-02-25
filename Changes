@@ -1,3 +1,7 @@
+libclearpress-perl (2019.2.25) stable; urgency=low
+
+  * correctly map HTTP HEAD requests to view->head method calls
+
 libclearpress-perl (2019.2.01) stable; urgency=low
 
   * correctly process PUTDATA for PUT requests (as with POSTDATA for POST requests)
