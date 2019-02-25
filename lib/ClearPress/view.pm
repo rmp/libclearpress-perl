@@ -318,7 +318,7 @@ sub render {
   # Figure out and call the appropriate action if available
   #
   my $method = $self->method_name;
-  if($method !~ /^(?:add|edit|create|read|update|delete|list|options)/smx) {
+  if($method !~ /^(?:add|edit|create|read|update|delete|list|options|head)/smx) {
     croak qq[Illegal method: $method];
   }
 

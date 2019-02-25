@@ -33,7 +33,7 @@ our $CRUD    = { # these map HTTP verbs to $action
 		PUT     => 'update',
 		DELETE  => 'delete',
                 OPTIONS => 'options',
-                HEAD    => 'null',
+                HEAD    => 'head',
                 TRACE   => 'null',
 	       };
 our $REST   = { # these assist sanitising $aspect
@@ -45,7 +45,8 @@ our $REST   = { # these assist sanitising $aspect
 	       edit    => 'GET',
 	       list    => 'GET',
                options => 'OPTIONS',
-               null    => 'HEAD|TRACE'
+               head    => 'HEAD',
+               null    => 'TRACE'
 	      };
 
 sub accept_extensions {
