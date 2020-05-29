@@ -12,7 +12,7 @@ use base qw(Class::Accessor);
 use Readonly;
 use Carp;
 
-our $VERSION = q[2019.02.25];
+our $VERSION = q[2020.05.29];
 
 our $DEFAULTS = {
 		 meta_content_type => 'text/html',

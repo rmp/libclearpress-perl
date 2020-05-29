@@ -21,7 +21,7 @@ use HTTP::Headers;
 
 Readonly::Array our @EXPORT_OK => qw(is_xml is_json is_xls is_txt);
 
-our $VERSION = q[2019.02.25];
+our $VERSION = q[2020.05.29];
 
 sub new {
   my ($class, $ref_in) = @_;

@@ -23,7 +23,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[2019.02.25];
+our $VERSION = q[2020.05.29];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
@@ -508,7 +508,7 @@ sub _populate_from_cgi {
         $params = XMLin($reqdata);
       };
 
-      for my $k (%{$params}) {
+      for my $k (keys %{$params}) {
         if(ref $params->{$k} &&
            ref $params->{$k} eq 'HASH' &&
            !scalar keys %{$params->{$k}}) {

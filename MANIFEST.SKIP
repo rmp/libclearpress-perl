@@ -56,9 +56,6 @@
 ^MYMETA\.
 #!end included /usr/local/lib/perl5/5.16.2/ExtUtils/MANIFEST.SKIP
 
-# Avoid configuration metadata file
-^META\.
-
 # Avoid Module::Build generated and utility files.
 \bBuild$
 \bBuild.bat$

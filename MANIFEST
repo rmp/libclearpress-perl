@@ -219,5 +219,3 @@ t/view/20-view.t
 t/view/entity-with-slashes.t
 t/view/error.t
 t/view/postdata.t
-META.yml
-META.json
