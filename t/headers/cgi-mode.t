@@ -2,7 +2,7 @@
 # vim:ts=8:sw=2:et:sta:sts=2
 use strict;
 use warnings;
-use Test::More tests => 160;
+use Test::More;# tests => 160;
 use HTTP::Headers;
 use HTTP::Status qw(:constants);
 use IO::Capture::Stderr;
@@ -15,6 +15,13 @@ use lib qw(t/headers/lib t/lib);
 use t::request;
 use t::model::response;
 use t::view::response;
+
+eval {
+  require DBD::SQLite;
+  plan tests => 160;
+} or do {
+  plan skip_all => 'DBD::SQLite not installed';
+};
 
 #########
 # database setup
