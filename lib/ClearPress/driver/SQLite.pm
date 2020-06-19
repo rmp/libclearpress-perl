@@ -10,7 +10,7 @@ use Carp;
 use English qw(-no_match_vars);
 use Readonly;
 
-our $VERSION = q[2020.05.29];
+our $VERSION = q[2020.06.19];
 
 Readonly::Scalar our $TYPES => {
 				'primary key' => 'integer primary key autoincrement',

@@ -9,7 +9,7 @@ use Test::More tests => 11;
 use English qw(-no_match_vars);
 use Test::Trap;
 
-our $VERSION = q[2020.05.29];
+our $VERSION = q[2020.06.19];
 
 use_ok('ClearPress::driver');
 

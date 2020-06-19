@@ -1,3 +1,7 @@
+libclearpress-perl (2020.06.19) stable; urgency=low
+
+  * corrected postdata parameter sanitisation
+
 libclearpress-perl (2020.05.29) stable; urgency=low
 
   * corrected postdata parameter sanitisation

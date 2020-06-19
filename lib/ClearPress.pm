@@ -11,7 +11,7 @@ use ClearPress::view;
 use ClearPress::controller;
 use ClearPress::util;
 
-our $VERSION = q[2020.05.29];
+our $VERSION = q[2020.06.19];
 
 1;
 __END__
