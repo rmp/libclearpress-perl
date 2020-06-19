@@ -23,7 +23,7 @@ build_requires:
 configure_requires:
   Module::Build: '0.38'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4224, CPAN::Meta::Converter version 2.150010'
+generated_by: 'Module::Build version 0.4231, CPAN::Meta::Converter version 2.150010'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -32,58 +32,58 @@ name: ClearPress
 provides:
   ClearPress:
     file: lib/ClearPress.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::Localize:
     file: lib/ClearPress/Localize.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authdecor:
     file: lib/ClearPress/authdecor.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authenticator:
     file: lib/ClearPress/authenticator.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authenticator::db:
     file: lib/ClearPress/authenticator/db.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authenticator::ldap:
     file: lib/ClearPress/authenticator/ldap.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authenticator::passwd:
     file: lib/ClearPress/authenticator/passwd.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::authenticator::session:
     file: lib/ClearPress/authenticator/session.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::controller:
     file: lib/ClearPress/controller.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::decorator:
     file: lib/ClearPress/decorator.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::driver:
     file: lib/ClearPress/driver.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::driver::Pg:
     file: lib/ClearPress/driver/Pg.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::driver::SQLite:
     file: lib/ClearPress/driver/SQLite.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::driver::mysql:
     file: lib/ClearPress/driver/mysql.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::model:
     file: lib/ClearPress/model.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::util:
     file: lib/ClearPress/util.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::view:
     file: lib/ClearPress/view.pm
-    version: v2019.2.25
+    version: v2020.5.29
   ClearPress::view::error:
     file: lib/ClearPress/view/error.pm
-    version: v2019.2.25
+    version: v2020.5.29
 recommends:
   Crypt::MySQL: '0.04'
   DBD::SQLite: '1.14'
@@ -124,5 +124,5 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: http://github.com/rmp/libclearpress-perl
-version: v2019.2.25
+version: v2020.5.29
 x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

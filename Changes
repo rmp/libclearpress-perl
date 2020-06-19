@@ -1,3 +1,7 @@
+libclearpress-perl (2020.05.29) stable; urgency=low
+
+  * corrected postdata parameter sanitisation
+
 libclearpress-perl (2019.2.25) stable; urgency=low
 
   * correctly map HTTP HEAD requests to view->head method calls
