@@ -25,7 +25,7 @@ use CGI;
 use HTTP::Status qw(:constants :is);
 use HTTP::Headers;
 
-our $VERSION = q[2020.06.19];
+our $VERSION = q[2021.01.05];
 
 our $CRUD    = { # these map HTTP verbs to $action
 		POST    => 'create',
@@ -557,7 +557,7 @@ sub handler {
     # 4. hand off to error response handler
     #
     $EVAL_ERROR =~ s{[\r\n]+}{ }smxg;
-    carp qq[controller::handler: view->render failed: $EVAL_ERROR];
+    #carp qq[controller::handler: view->render failed: $EVAL_ERROR];
     $viewobject->output_reset(); # reset headers on the original view
     $self->errstr($EVAL_ERROR);
 

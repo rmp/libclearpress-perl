@@ -16,7 +16,7 @@ use CGI;
 use IO::Capture::Stderr;
 use Data::UUID;
 
-our $VERSION = q[2020.06.19];
+our $VERSION = q[2021.01.05];
 
 our $DEBUG_UTIL           = 0;
 our $DEFAULT_TRANSACTIONS = 1;
