@@ -171,7 +171,7 @@ sub process_request { ## no critic (Subroutines::ProhibitExcessComplexity)
 
   my ($aspect)      = $pi =~ m{;(\S+)}smx;
 
-  if(($action eq 'read' || $action eq 'head') && !$id && !$aspect) {
+  if(($action eq 'read') && !$id && !$aspect) {
     $aspect = 'list';
   }
 

@@ -8,7 +8,7 @@ use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 113;
+  plan tests => 116;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
@@ -137,6 +137,9 @@ my $T = [
          ['HEAD', '/thing13/telemetry.json',            '', $json, 'head',   'thing13', 'head_telemetry_json', 0],
          ['HEAD', '/thing13/telemetry/1234',            '', $json, 'head',   'thing13', 'head_telemetry', '1234'],
          ['HEAD', '/thing13/telemetry',                 '', $json, 'head',   'thing13', 'head_telemetry', 0],
+         ['HEAD', '/thing.json',                        '', undef, 'head',   'thing',   'head_json', 0],
+         ['HEAD', '/thing.json',                             '', $json, 'head',   'thing',   'head_json', 0], # there's a bug in the test suite - this shouldn't need .json suffix when $json env is given
+         ['HEAD', '/thing',                             '', undef, 'head',   'thing',   'head', 0],
         ];
 
 {
@@ -177,7 +180,7 @@ sub request_test {
 		%{$t->[3]||{}},
 	       );
   my $ctrl    = $CTRL->new({util => $util});
-  my $headers = HTTP::Headers->new;
+  my $headers = HTTP::Headers->new();
   my $ref     = [];
   eval {
     $ref = [$ctrl->process_request($headers)];
