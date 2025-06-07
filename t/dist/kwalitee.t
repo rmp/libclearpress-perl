@@ -7,7 +7,7 @@ use Test::More;
 use strict;
 use warnings;
 
-our $VERSION = q[2021.01.05];
+our $VERSION = q[2025.06.07];
 
 BEGIN {
   plan skip_all => 'these tests are for release candidate testing' unless($ENV{TEST_AUTHOR});
