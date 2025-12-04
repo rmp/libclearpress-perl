@@ -66,6 +66,10 @@ cpan:	clean
 	make dist
 	cpan-upload ClearPress-v$(MAJOR).$(MINOR).$(SUB)-$(PATCH).tar.gz
 
+#########
+# there are a range of non-core dependencies listed/installed through the debdeps target
+# A repository which resolves these dependencies is available at https://psyphi.net/apt/
+#
 debdeps:
 	grep Depends deb-src/DEBIAN/control.tmpl  | cut -d : -f 2 | sed 's/,/ /g' | xargs sudo apt-get install -y
 	grep Recommends deb-src/DEBIAN/control.tmpl  | cut -d : -f 2 | sed 's/,/ /g' | xargs sudo apt-get install -y
