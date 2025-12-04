@@ -23,6 +23,12 @@ my $util = t::util->new();
 my $ajax = { HTTP_X_REQUESTED_WITH => 'XmlHttpRequest' };
 my $json = { HTTP_CONTENT_TYPE     => 'application/json' };
 my $T    = [
+            #########
+            # A matrix of test cases to exercise edges of controller request parsing.
+            # Each row is a test case containing both input and output data of the form:
+            #
+            # [HTTP Method, URI (/entitytype/<composite action>/entity_id.extension), query string, request headers,  expected action, expected entity, expected aspect, expected entity id]
+            #
             ['GET', '/',                                 '', undef, 'read',  'example', 'list', 0], #default_view
             ['GET', '/thing/method',                     '', undef, 'read',  'thing', 'read', 'method'],
             ['GET', '/thing2/method',                    '', undef, 'read',  'thing2', 'list_method', 0],
