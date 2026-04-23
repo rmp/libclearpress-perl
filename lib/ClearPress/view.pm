@@ -395,7 +395,7 @@ sub process_template { ## no critic (Complexity)
   #
   for my $default_proto (keys %{$DEFAULT_PROTO_PORTS}) {
     if(($default_proto eq lc $http_proto) &&
-       $http_port == $DEFAULT_PROTO_PORTS->{$default_proto}) {
+       $http_port eq $DEFAULT_PROTO_PORTS->{$default_proto}) {
       $http_port = q[];
       last;
     }
