@@ -343,7 +343,7 @@ sub has_a {
     my $namespace = "${class}::$pkg";
     my $yield     = $class;
     if($yield !~ /model/smx) {
-      croak qq[$pkg is not under a model:: namespace. Friend relationships will not work.];
+      croak qq[$pkg ($namespace) is not under a model:: namespace. Friend relationships will not work.];
     }
 
     $yield =~ s/^(.*model::).*$/$1$pkg/smx;
@@ -389,7 +389,7 @@ sub has_many {
     $yield        =~ s/^(.*model::).*$/$1$pkg/smx;
 
     if($yield !~ /model/smx) {
-      croak qq[$pkg is not under a model:: namespace. Friend relationships will not work.];
+      croak qq[$pkg ($namespace) is not under a model:: namespace. Friend relationships will not work.];
     }
 
     if (defined &{$namespace}) {
@@ -439,7 +439,7 @@ sub has_a_through {
     $yield        =~ s/^(.*model::).*$/$1$pkg/smx;
 
     if($yield !~ /model/smx) {
-      croak qq[$pkg is not under a model:: namespace. Friend relationships will not work.];
+      croak qq[$pkg ($namespace) is not under a model:: namespace. Friend relationships will not work.];
     }
 
     if (defined &{$namespace}) {
@@ -485,7 +485,7 @@ sub has_many_through {
     $yield        =~ s/^(.*model::).*$/$1$pkg/smx;
 
     if($yield !~ /model/smx) {
-      croak qq[$pkg is not under a model:: namespace. Friend relationships will not work.];
+      croak qq[$pkg ($namespace) is not under a model:: namespace. Friend relationships will not work.];
     }
 
     if (defined &{$namespace}) {
