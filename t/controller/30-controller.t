@@ -8,7 +8,7 @@ use Test::Trap;
 
 eval {
   require DBD::SQLite;
-  plan tests => 116;
+  plan tests => 121;
 } or do {
   plan skip_all => 'DBD::SQLite not installed';
 };
@@ -88,8 +88,13 @@ my $T    = [
             ['POST', '/thing.xml',                       '', undef, 'create', 'thing',   'create_xml',         0],
             ['POST', '/thing;create_xml',                '', undef, 'create', 'thing',   'create_xml',         0],
             ['POST', '/thing/10',                        '', undef, 'update', 'thing',   'update',             10],
+            ['PUT',  '/thing/10',                        '', undef, 'update', 'thing',   'update',             10],
             ['POST', '/thing/10.xml',                    '', undef, 'update', 'thing',   'update_xml',         10],
+            ['PUT',  '/thing/10.json',                   '', undef, 'update', 'thing',   'update_json',        10],
             ['POST', '/thing/10;update_xml',             '', undef, 'update', 'thing',   'update_xml',         10],
+            ['PUT',  '/thing/10;revoke',                 '', undef, 'update', 'thing',   'update_revoke',      10],
+            ['PUT',  '/thing/10;update_revoke',          '', undef, 'update', 'thing',   'update_revoke',      10],
+            ['PUT',  '/thing/10.json;update_revoke',     '', undef, 'update', 'thing',   'update_revoke_json', 10],
             ['POST', '/thing/update/10.xml',             '', undef, 'update', 'thing',   'update_xml',         10],
             ['POST', '/thing10/heatmap.png',             '', undef, 'create', 'thing10', 'create_heatmap_png', 0],
 
