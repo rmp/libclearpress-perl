@@ -449,10 +449,10 @@ sub process_template { ## no critic (Complexity)
   $template = \$template_cache->{$template};
 
   if($where_to_ref) {
-    $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
+    $self->tt->process($template, $params, $where_to_ref, {binmode => ':utf8'}) or croak $self->tt->error;
 
   } else {
-    $self->tt->process($template, $params, $where_to_ref) or croak $self->tt->error;
+    $self->tt->process($template, $params, $where_to_ref, {binmode => ':utf8'}) or croak $self->tt->error;
   }
 
   return 1;
