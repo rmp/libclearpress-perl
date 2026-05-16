@@ -9,7 +9,7 @@ use warnings;
 use base qw(ClearPress::authenticator);
 use Carp;
 
-our $VERSION = q[2026.05.14];
+our $VERSION = q[2026.05.16];
 
 sub authen_credentials {
   my ($self, $ref) = @_;
