@@ -68,8 +68,6 @@
 # Avoid archives of this distribution
 \bClearPress-[\d\.\_]+
 ^test.db
-META.yml
-META.json
 tmp/
 libclearpress-.*deb
 ClearPress.*gz

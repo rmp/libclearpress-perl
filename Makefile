@@ -4,6 +4,7 @@ SUB      ?= $(shell date +%d)
 PATCH    ?= 1
 MD5SUM    = md5sum
 SEDI      = sed -i
+OS       ?= $(shell uname -s)
 
 ifeq ($(shell uname), Darwin)
         MD5SUM = md5 -r
@@ -45,7 +46,15 @@ install:	setup
 dist:	setup
 	./Build dist
 
-deb:	manifest
+docker_build:
+	docker build --platform linux/amd64 -t libclearpress-perl-build .
+
+deb: deb_$(OS)
+
+deb_Darwin: docker_build
+	docker run -it --rm -v $$(pwd):$$(pwd) -w $$(pwd) libclearpress-perl-build make deb
+
+deb_Linux:	manifest
 	make test
 	touch tmp
 	rm -rf tmp
