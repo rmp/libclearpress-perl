@@ -1,3 +1,8 @@
+libclearpress-perl (2025.05.16) stable; urgency=low
+
+  * corrected UTF-8 output
+  * reduced undef warnings
+
 libclearpress-perl (2020.06.19) stable; urgency=low
 
   * corrected postdata parameter sanitisation
