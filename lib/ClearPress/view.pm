@@ -493,7 +493,7 @@ sub _populate_from_cgi {
   # todo: look at PUTDATA as well
   #
   my ($method) = $ENV{REQUEST_METHOD} =~ /(PUT|POST)/smix;
-  $method    ||= '';
+  $method    ||= q[];
   my $PDATA    = sprintf q[%sDATA], (uc $method || 'POST');
   my $reqdata  = $cgi->param($PDATA);
 
