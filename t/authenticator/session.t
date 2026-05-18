@@ -5,19 +5,21 @@ use warnings;
 use Test::More tests => 12;
 use MIME::Base64 qw(encode_base64);
 use Test::Trap;
+use English qw(-no_match_vars);
 
 our $PKG = 'ClearPress::authenticator::session';
+our $KEY = 'test-session-key-for-tests';
 
 use_ok($PKG);
 can_ok($PKG, qw(authen_token));
 
 {
-  my $auth = $PKG->new();
+  my $auth = $PKG->new({key => $KEY});
   isa_ok($auth, $PKG);
 }
 
 {
-  my $auth   = $PKG->new();
+  my $auth   = $PKG->new({key => $KEY});
   my $cipher = $auth->cipher();
   isa_ok($cipher, 'Crypt::CBC');
 
@@ -26,8 +28,8 @@ can_ok($PKG, qw(authen_token));
 
 {
   my $auth = $PKG->new();
-  my $key  = $auth->key();
-  is($key, 'topsecretkey', 'default key');
+  eval { $auth->key() };
+  like($EVAL_ERROR, qr/No encryption key configured/, 'no default key - must croak');
 }
 
 {
@@ -45,7 +47,7 @@ can_ok($PKG, qw(authen_token));
 }
 
 {
-  my $auth = $PKG->new();
+  my $auth = $PKG->new({key => $KEY});
   my $ref  = {
 	      username => 'dummy',
 	      metadata => 'stuff',
@@ -59,7 +61,7 @@ can_ok($PKG, qw(authen_token));
 }
 
 {
-  my $auth    = $PKG->new();
+  my $auth    = $PKG->new({key => $KEY});
   my $encoded = encode_base64('corruption');
 
   trap {
@@ -69,7 +71,7 @@ can_ok($PKG, qw(authen_token));
 
 
 {
-  my $auth      = $PKG->new();
+  my $auth      = $PKG->new({key => $KEY});
   my $cipher    = $auth->cipher;
   my $encrypted = $cipher->encrypt('corruption');
   my $encoded   = encode_base64($encrypted);

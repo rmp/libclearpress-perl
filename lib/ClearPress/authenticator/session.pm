@@ -12,10 +12,9 @@ use Readonly;
 use Carp;
 use MIME::Base64 qw(encode_base64 decode_base64);
 use YAML::Tiny qw(Load Dump);
+use Digest::SHA qw(hmac_sha256_hex);
 
 our $VERSION = q[2026.05.18];
-
-Readonly::Scalar our $KEY => q[topsecretkey];
 
 sub authen_token {
   my ($self, $token) = @_;
@@ -23,12 +22,24 @@ sub authen_token {
   return $self->decode_token($token);
 }
 
+sub hmac_key {
+  my $self = shift;
+  return 'hmac-' . $self->key;
+}
+
+sub verify_hmac {
+  my ($self, $data, $mac) = @_;
+  my $expected = hmac_sha256_hex($data, $self->hmac_key);
+  return $expected eq $mac;
+}
+
 sub encode_token {
   my ($self, $user_hash) = @_;
 
   my $user_yaml = Dump($user_hash);
   my $encrypted = $self->cipher->encrypt($user_yaml);
-  my $encoded   = encode_base64($encrypted);
+  my $mac       = hmac_sha256_hex($encrypted, $self->hmac_key);
+  my $encoded   = encode_base64($mac . ':' . encode_base64($encrypted, q[]), q[]);
 
   return $encoded;
 }
@@ -36,17 +47,29 @@ sub encode_token {
 sub decode_token {
   my ($self, $token) = @_;
 
-  my $decoded = q[];
+  my $outer = q[];
   eval {
-    $decoded = decode_base64($token);
+    $outer = decode_base64($token);
   } or do {
     carp q[Failed to decode token];
     return;
   };
 
+  my ($mac, $inner_b64) = split /:/smx, $outer, 2;
+  if(!$mac || !$inner_b64) {
+    # legacy token without HMAC - attempt direct decode for backwards compat
+    return $self->_decode_legacy_token($token);
+  }
+
+  my $encrypted = decode_base64($inner_b64);
+  if(!$self->verify_hmac($encrypted, $mac)) {
+    carp q[Token integrity check failed];
+    return;
+  }
+
   my $decrypted = q[];
   eval {
-    $decrypted = $self->cipher->decrypt($decoded);
+    $decrypted = $self->cipher->decrypt($encrypted);
   } or do {
     carp q[Failed to decrypt token];
     return;
@@ -55,9 +78,38 @@ sub decode_token {
   my $deyamled;
   eval {
     $deyamled = Load($decrypted);
-
   } or do {
     carp q[Failed to de-YAML token];
+    return;
+  };
+
+  return $deyamled;
+}
+
+sub _decode_legacy_token {
+  my ($self, $token) = @_;
+
+  my $decoded = q[];
+  eval {
+    $decoded = decode_base64($token);
+  } or do {
+    carp q[Failed to decode legacy token];
+    return;
+  };
+
+  my $decrypted = q[];
+  eval {
+    $decrypted = $self->cipher->decrypt($decoded);
+  } or do {
+    carp q[Failed to decrypt legacy token];
+    return;
+  };
+
+  my $deyamled;
+  eval {
+    $deyamled = Load($decrypted);
+  } or do {
+    carp q[Failed to de-YAML legacy token];
     return;
   };
 
@@ -67,7 +119,7 @@ sub decode_token {
 sub key {
   my ($self, $key) = @_;
 
-  if($key) {
+  if(defined $key && length $key) {
     $self->{key} = $key;
   }
 
@@ -75,7 +127,7 @@ sub key {
     return $self->{key};
   }
 
-  return $KEY;
+  croak q[No encryption key configured. Pass key => '...' to the constructor];
 }
 
 sub cipher {

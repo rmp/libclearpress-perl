@@ -13,7 +13,7 @@ use Readonly;
 our $VERSION = q[2026.05.18];
 
 Readonly::Scalar our $TYPES => {
-				'primary key' => 'bigint unsigned not null auto_increment primary key',
+				'primary key' => 'bigserial PRIMARY KEY',
 			       };
 sub dbh {
   my $self = shift;
@@ -23,7 +23,7 @@ sub dbh {
     my $dsn = sprintf q(DBI:Pg:database=%s;host=%s;port=%s),
 		      $self->{dbname} || q[],
 		      $self->{dbhost} || q[localhost],
-		      $self->{dbport} || q[3306];
+		      $self->{dbport} || q[5432];
 
     eval {
       $self->{dbh} = DBI->connect($dsn,
@@ -49,15 +49,22 @@ sub create {
   my ($self, $query, @args) = @_;
   my $dbh = $self->dbh();
 
-  $dbh->do($query, {}, @args);
-  my $idref = $dbh->selectall_arrayref('SELECT LAST_INSERT_ID()');
+  my ($table) = $query =~ /INTO\s+([[:alnum:]_]+)/smix;
+  my ($pk)    = $query =~ /\(([[:alnum:]_]+)/smx;
 
-  return $idref->[0]->[0];
+  $query .= qq[ RETURNING $pk] if $pk;
+
+  my $sth = $dbh->prepare($query);
+  $sth->execute(@args);
+  my ($id) = $sth->fetchrow_array();
+  $sth->finish();
+
+  return $id;
 }
 
 sub create_table {
   my ($self, $table_name, $ref) = @_;
-  return $self->SUPER::create_table($table_name, $ref, { engine=>'InnoDB'});
+  return $self->SUPER::create_table($table_name, $ref);
 }
 
 sub types {
@@ -68,9 +75,9 @@ sub bounded_select {
   my ($self, $query, $len, $start) = @_;
 
   if(defined $start && defined $len) {
-    $query .= qq[ LIMIT $start, $len];
+    $query .= sprintf q[ LIMIT %d OFFSET %d], $len, $start;
   } elsif(defined $len) {
-    $query .= qq[ LIMIT $len];
+    $query .= sprintf q[ LIMIT %d], $len;
   }
 
   return $query;
@@ -82,8 +89,6 @@ __END__
 =head1 NAME
 
 ClearPress::driver::Pg - Pg-specific implementation of the database abstraction layer
-
-** WARNING! ALPHA CODE **
 
 =head1 VERSION
 
@@ -107,7 +112,7 @@ $LastChangedRevision: 470 $
 
 =head2 types - the whole type map
 
-=head2 bounded_select - stub for select limited by number of rows and first-row position
+=head2 bounded_select - select limited by number of rows and first-row position
 
   my $bounded_select = $driver->bounded_select($unbounded_select, $rows, $start_row);
 

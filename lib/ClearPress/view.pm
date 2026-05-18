@@ -85,10 +85,11 @@ sub setup_filters {
                          if(!defined $string) {
                            $string = q[];
                          }
+                         $string    =~ s/\\/\\\\/smxg;
                          $string    =~ s/\r/\\r/smxg;
                          $string    =~ s/\n/\\n/smxg;
                          $string    =~ s/"/\\"/smxg;
-#                         $string    =~ s/'/\\'/smxg;
+                         $string    =~ s{</}{<\\/}smxg;
                          return $string;
                        });
 
@@ -388,7 +389,7 @@ sub process_template { ## no critic (Complexity)
   my ($xfh, $xfp) = ($ENV{HTTP_X_FORWARDED_HOST}, $ENV{HTTP_X_FORWARDED_PORT});
   my $http_host   = ($xfh ? $xfh : $ENV{HTTP_HOST}) || q[localhost];
   my $http_port   = ($xfh ? $xfp : $ENV{HTTP_PORT}) || q[];
-  my $http_proto  = $ENV{HTTP_X_FORWARDED_PROTO}    || $ENV{HTTPS}?q[https]:q[http];
+  my $http_proto  = $ENV{HTTP_X_FORWARDED_PROTO}    || ($ENV{HTTPS} ? q[https] : q[http]);
 
   #########
   # if default port for protocol, skip addition of the port
@@ -666,7 +667,7 @@ sub tt {
     my $opts        = $self->tt_opts;
     my $ns          = $util->config->val('application', 'namespace') ||
                         $util->config->val('application', 'name');
-    my $plugin_base = $ns ? q[ClearPress::Template::Plugin] : sprintf q[%s::plugin], $ns;
+    my $plugin_base = $ns ? sprintf(q[%s::Template::Plugin], $ns) : q[ClearPress::Template::Plugin];
     my $defaults    = {
                        PLUGIN_BASE  => $plugin_base,
                        RECURSION    => 1,
@@ -783,7 +784,7 @@ sub actions {
 sub redirect {
   my ($self, $url, $status) = @_;
 
-  $self->headers->header('Status', HTTP_FOUND);
+  $self->headers->header('Status', $status || HTTP_FOUND);
   $self->headers->header('Location', $url);
 
   #########
@@ -801,8 +802,10 @@ sub redirect {
     }
   }
 
+  my $safe_url = encode_entities_numeric($url);
+
   $self->output_buffer($self->headers->as_string, "\n");
-  $self->decorator->meta_refresh(qq[0;URL='$url']);
+  $self->decorator->meta_refresh(qq[0;URL='$safe_url']);
 
   #########
   # clean everything up and terminate
@@ -810,13 +813,7 @@ sub redirect {
   $self->output_flush();
   $self->headers->clear();
 
-  ########
-  # Warning: This ought to correspond to content-type, but doesn't!
-  #
-  return <<"EOT"
-   <p>This document has moved <a href="$url">here</a>.</p>
-   <script>document.location.href="$url";</script>
-EOT
+  return qq[   <p>This document has moved <a href="$safe_url">here</a>.</p>\n]
 }
 
 #########

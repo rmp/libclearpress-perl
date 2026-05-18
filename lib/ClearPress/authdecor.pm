@@ -131,14 +131,8 @@ sub footer {
 }
 
 sub site_login_form {
-  my $host = $ENV{HTTP_X_FORWARDED_HOST} || $ENV{HTTP_HOST} || q[];
-
-  if($host) {
-    $host = "https://$host";
-  }
-
   return <<"EOT";
-<form class="login_form" method="post" action="$host/login">
+<form class="login_form" method="post" action="/login">
  <dl class="tbl">
   <dt><label for="cred_0">Username</label></dt>
   <dd><input type="text" size="14" name="cred_0" id="cred_0"/></dd>

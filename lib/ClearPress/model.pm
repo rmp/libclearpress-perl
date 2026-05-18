@@ -603,23 +603,19 @@ EOT
 
       my $ref = $sth->fetchrow_hashref();
 
-      if(!$sth->rows()) {
-	#########
-	# entity not in database
-	#
+      if(!$ref) {
 	$sth->finish();
 	croak q[missing entity];
       }
 
+      my $warnings = $util->driver->sth_has_warnings($sth);
       $sth->finish();
 
-      my $warnings = $util->driver->sth_has_warnings($sth);
-      if(!$warnings) {
-        for my $f ($self->fields()) {
-          $self->{$f} = $ref->{$f};
-        }
+      for my $f ($self->fields()) {
+        $self->{$f} = $ref->{$f};
+      }
 
-      } else {
+      if($warnings) {
         for my $w (@{$warnings}) {
           carp qq[ClearPress::model::read: mysql warning: $w->[2]];
         }
@@ -632,6 +628,7 @@ EOT
 	return;
       }
       carp qq[SELECT ERROR\nEVAL_ERROR: $EVAL_ERROR\nQuery:\n$query\n\nParams: @{[map { (defined $_)?$_:'NULL' } @args]}\n];
+      return;
     };
   }
   $self->{_loaded} = 1;

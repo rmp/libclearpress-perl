@@ -482,7 +482,7 @@ sub handler {
   $headers->header('Content-Type', ClearPress::view->new($params)->content_type || 'text/html'); # don't forget to add charset
 
   for my $cookie ($decorator->cookie) {
-    $self->{headers}->push_header('Set-Cookie', $_);
+    $headers->push_header('Set-Cookie', $cookie);
   }
 
   if($process_request_error) {
@@ -609,7 +609,16 @@ sub handle_error {
   my $util      = $self->util;
   my $decorator = $self->decorator();
   my $namespace = $self->namespace();
-  my ($action, $entity, $aspect, $id) = $self->process_request($headers);
+  my ($action, $entity, $aspect, $id);
+  eval {
+    ($action, $entity, $aspect, $id) = $self->process_request($headers);
+    1;
+  } or do {
+    $action = 'read';
+    $entity = 'error';
+    $aspect = 'read';
+    $id     = 0;
+  };
 
   # if running in mod_perl, main request serves a bad status header and errordocument is handled by a subrequest
   # if running in CGI, main request serves a bad status header and follows with errordocument content

@@ -19,7 +19,7 @@ our $SUPPORTED_CIPHERS = {
 			  mysql   => sub { my ($self, $str) = @_; $self->dyn_use('Crypt::MySQL'); return Crypt::MySQL::password($str); },
 			  mysql41 => sub { my ($self, $str) = @_; $self->dyn_use('Crypt::MySQL'); return Crypt::MySQL::password41($str); },
 			  sha1    => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha1_hex($str); },
-			  sha128  => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha128_hex($str); },
+			  sha224  => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha224_hex($str); },
 			  sha256  => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha256_hex($str); },
 			  sha384  => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha384_hex($str); },
 			  sha512  => sub { my ($self, $str) = @_; $self->dyn_use('Digest::SHA');  return Digest::SHA::sha512_hex($str); },
