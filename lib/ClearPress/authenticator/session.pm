@@ -83,7 +83,6 @@ sub cipher {
 
   if(!$self->{cipher}) {
     $self->{cipher} = Crypt::CBC->new(
-				      -cipher => 'Blowfish',
 				      -key    => $self->key,
 				     );
   }

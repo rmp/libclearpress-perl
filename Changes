@@ -1,3 +1,7 @@
+libclearpress-perl (2025.05.18) stable; urgency=low
+
+  * Switched default cipher from Blowfish to Cipher::AES to improve cross-platform compatibility
+
 libclearpress-perl (2025.05.16) stable; urgency=low
 
   * corrected UTF-8 output

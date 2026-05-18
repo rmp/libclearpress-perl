@@ -39,7 +39,7 @@ my $builder = Module::Build->new(
 							 'warnings'              => '1.05',
 							 'YAML::Tiny'            => '1.36',
 							 'Crypt::CBC'            => '2.30',
-							 'Crypt::Blowfish'       => '2.10',
+							 'Crypt::Cipher::AES'    => '0.067',
 							 'MIME::Base64'          => '3.07',
 							},
 				 recommends          => {
