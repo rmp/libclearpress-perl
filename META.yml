@@ -23,7 +23,7 @@ build_requires:
 configure_requires:
   Module::Build: '0.38'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4234, CPAN::Meta::Converter version 2.150010'
+generated_by: 'Module::Build version 0.4231, CPAN::Meta::Converter version 2.150010'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -96,8 +96,8 @@ requires:
   Carp: '1.02'
   Class::Accessor: '0.31'
   Config::IniFiles: '2.38'
-  Crypt::Blowfish: '2.10'
   Crypt::CBC: '2.30'
+  Crypt::Cipher::AES: '0.067'
   DBI: '1.51'
   Data::UUID: '1.220'
   English: '1.01'
@@ -125,4 +125,4 @@ resources:
   license: http://dev.perl.org/licenses/
   repository: http://github.com/rmp/libclearpress-perl
 version: v2026.5.16
-x_serialization_backend: 'CPAN::Meta::YAML version 0.020'
+x_serialization_backend: 'CPAN::Meta::YAML version 0.018'

@@ -4,7 +4,7 @@
       "Roger M Pettett <rpettett@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4234",
+   "generated_by" : "Module::Build version 0.4231",
    "license" : [
       "perl_5"
    ],
@@ -54,8 +54,8 @@
             "Carp" : "1.02",
             "Class::Accessor" : "0.31",
             "Config::IniFiles" : "2.38",
-            "Crypt::Blowfish" : "2.10",
             "Crypt::CBC" : "2.30",
+            "Crypt::Cipher::AES" : "0.067",
             "DBI" : "1.51",
             "Data::UUID" : "1.220",
             "English" : "1.01",
@@ -166,5 +166,5 @@
       }
    },
    "version" : "v2026.5.16",
-   "x_serialization_backend" : "JSON::PP version 4.16"
+   "x_serialization_backend" : "JSON::PP version 4.06"
 }
