@@ -39,7 +39,7 @@ sub encode_token {
   my $user_yaml = Dump($user_hash);
   my $encrypted = $self->cipher->encrypt($user_yaml);
   my $mac       = hmac_sha256_hex($encrypted, $self->hmac_key);
-  my $encoded   = encode_base64($mac . ':' . encode_base64($encrypted, q[]), q[]);
+  my $encoded   = encode_base64($mac . q[:] . encode_base64($encrypted, q[]), q[]);
 
   return $encoded;
 }
@@ -178,6 +178,12 @@ $LastChangedRevision: 470 $
 =head2 cipher - a configure Crypt::CBC object
 
   my $oCipher = $oSession->cipher();
+
+=head2 hmac_key
+
+  my $sHMACKey = $oSession->hmac_key();
+
+=head2 verify_hmac
 
 =head1 DIAGNOSTICS
 

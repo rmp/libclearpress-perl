@@ -33,7 +33,7 @@ sub dbh {
 				   AutoCommit => 0});
 
     } or do {
-      croak qq[Failed to connect to $dsn using @{[$self->{dbuser}||q['']]}\n$EVAL_ERROR];
+      croak qq[Failed to connect to $dsn using '@{[$self->{dbuser}||""]}'\n$EVAL_ERROR];
     };
 
     #########
@@ -50,9 +50,11 @@ sub create {
   my $dbh = $self->dbh();
 
   my ($table) = $query =~ /INTO\s+([[:alnum:]_]+)/smix;
-  my ($pk)    = $query =~ /\(([[:alnum:]_]+)/smx;
+  my ($pk)    = $query =~ /[(]([[:alnum:]_]+)/smx;
 
-  $query .= qq[ RETURNING $pk] if $pk;
+  if($pk) {
+    $query .= qq[ RETURNING $pk];
+  }
 
   my $sth = $dbh->prepare($query);
   $sth->execute(@args);
