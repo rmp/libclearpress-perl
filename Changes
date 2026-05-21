@@ -1,3 +1,6 @@
+libclearpress-perl (2025.05.21) stable; urgency=low
+  * Traced "Odd number of elements in anonymous hash at .../view.pm line 430."
+
 libclearpress-perl (2025.05.18) stable; urgency=low
 
   * Switched default cipher from Blowfish to Cipher::AES to improve cross-platform compatibility

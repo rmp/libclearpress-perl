@@ -15,7 +15,7 @@ use Locale::Maketext::Lexicon {
   };
 use Carp;
 
-our $VERSION = q[2026.05.18];
+our $VERSION = q[2026.05.21];
 
 sub init {
   my ($class, $locales) = @_;

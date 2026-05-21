@@ -14,7 +14,7 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 use YAML::Tiny qw(Load Dump);
 use Digest::SHA qw(hmac_sha256_hex);
 
-our $VERSION = q[2026.05.18];
+our $VERSION = q[2026.05.21];
 
 sub authen_token {
   my ($self, $token) = @_;

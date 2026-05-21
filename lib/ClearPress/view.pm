@@ -23,7 +23,7 @@ use MIME::Base64 qw(encode_base64);
 use JSON;
 use Readonly;
 
-our $VERSION = q[2026.05.18];
+our $VERSION = q[2026.05.21];
 
 our $DEBUG_OUTPUT        = 0;
 our $DEBUG_L10N          = 0;
@@ -416,21 +416,20 @@ sub process_template { ## no critic (Complexity)
 		    };
 
   my $params   = {
-		  requestor   => $util->requestor,
+		  requestor   => $util->requestor || undef,
 		  model       => $self->model,
 		  view        => $self,
-		  entity      => $entity,
-		  SCRIPT_NAME => $script_name,
-		  HTTP_HOST   => $http_host,
-		  HTTP_PORT   => $http_port,
-		  HTTPS       => $http_proto,
-		  SCRIPT_HREF => $href,
-		  ENTITY_HREF => "$href$entity",
+		  entity      => $entity          || q[],
+		  SCRIPT_NAME => $script_name     || q[],
+		  HTTP_HOST   => $http_host       || q[],
+		  HTTP_PORT   => $http_port       || q[],
+		  HTTPS       => $http_proto      || q[],
+		  SCRIPT_HREF => $href            || q[],
+		  ENTITY_HREF => "$href$entity"   || q[],
 		  now         => (strftime '%Y-%m-%dT%H:%M:%S', localtime),
 		  %{$cfg_globals},
 		  %{$extra_params||{}},
 		 };
-
 
   my $appname = $util->config->val('application', 'name') ||
                 $util->config->val('application', 'namespace') ||
