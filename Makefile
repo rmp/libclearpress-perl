@@ -21,7 +21,7 @@ setup:
 	perl Build.PL
 
 manifest: setup
-	rm MANIFEST
+	rm -f MANIFEST
 	./Build manifest
 
 clean:	setup

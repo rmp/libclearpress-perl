@@ -1,3 +1,8 @@
+libclearpress-perl (2025.05.25) stable; urgency=low
+
+  * reduced warnings (odd number of elements at view line 430)
+  * minor adjustments to deb contruction
+
 libclearpress-perl (2025.05.18) stable; urgency=low
 
   * Switched default cipher from Blowfish to Cipher::AES to improve cross-platform compatibility
