@@ -11,7 +11,7 @@ use English qw(-no_match_vars);
 use lib qw(t/lib);
 use Net::LDAP;
 
-our $VERSION = q[2026.05.25];
+our $VERSION = q[2026.07.25];
 
 eval {
   require Test::Distribution;

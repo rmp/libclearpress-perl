@@ -53,6 +53,7 @@ my $builder = Module::Build->new(
 				 build_requires      => {
 							 'CPAN'                  => '1.9205',
 							 'Cwd'                   => '3.2701',
+							 'DBD::SQLite'           => '1.14',
 							 'File::Copy'            => '2.09',
 							 'File::Path'            => '2.07_02',
 							 'File::Spec'            => '3.2701',
