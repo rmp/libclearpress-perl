@@ -801,7 +801,7 @@ sub redirect {
     }
   }
 
-  $self->output_buffer($self->headers->as_string, "\n");
+  $self->output_buffer($self->headers->as_string, "\r\n");
   $self->decorator->meta_refresh(qq[0;URL='$url']);
 
   #########
